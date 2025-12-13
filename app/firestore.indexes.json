@@ -1,0 +1,14 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "userQuestions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isPublic", "mode": "ASCENDING"},
+        {"fieldPath": "usedCount", "mode": "DESCENDING"},
+        {"fieldPath": "createdAt", "mode": "DESCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
