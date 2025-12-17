@@ -41,7 +41,7 @@ const Home: React.FC = () => {
     const handleUseQuestion = (event: any) => {
       const newQuestion: FormQuestion = {
         id: Date.now().toString(),
-        text: event.detail,
+        text: event.detail.trim(),
         likertScore: null,
         comment: '',
         category: 'Geral',
@@ -171,7 +171,7 @@ const Home: React.FC = () => {
       {/* Banco de Perguntas */}
       {showQuestionManager && (
         <div className="mb-8">
-          <QuestionManager />
+          <QuestionManager selectedQuestions={questions.map(q => q.text.trim())} />
         </div>
       )}
 

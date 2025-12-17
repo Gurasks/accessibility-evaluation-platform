@@ -8,7 +8,7 @@ import PublicQuestions from './components/PublicQuestions';
 import QuestionFilters from './components/QuestionFilters';
 import TemplateList from './components/TemplatesList';
 
-const QuestionManager: React.FC = () => {
+const QuestionManager: React.FC<{ selectedQuestions: string[] }> = ({ selectedQuestions }) => {
   const {
     userQuestions,
     publicQuestions,
@@ -34,13 +34,15 @@ const QuestionManager: React.FC = () => {
   const filteredUserQuestions = userQuestions.filter(q => {
     const matchesSearch = q.text.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || q.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const notSelected = !selectedQuestions.includes(q.text.trim());
+    return matchesSearch && matchesCategory && notSelected;
   });
 
   const filteredPublicQuestions = publicQuestions.filter(q => {
     const matchesSearch = q.text.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || q.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const notSelected = !selectedQuestions.includes(q.text.trim());
+    return matchesSearch && matchesCategory && notSelected;
   });
 
   return (
