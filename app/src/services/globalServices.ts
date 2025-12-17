@@ -60,5 +60,53 @@ export const getCogaCategories = () => {
       description:
         "Abrange condições como TDAH, autismo, dislexia, ansiedade e outras que podem impactar múltiplas funções cognitivas.",
     },
+    ENTENDER_COISAS_USO: {
+      key: "ENTENDER_COISAS_USO",
+      label: "Ajudar usuários a entender o que são as coisas e como usá-las",
+      description:
+        "Princípios para ajudar usuários a compreender o propósito de interfaces e como interagir com elementos.",
+    },
+    ENCONTRAR_CONTEUDO: {
+      key: "ENCONTRAR_CONTEUDO",
+      label: "Ajudar usuários a encontrar o que precisam",
+      description:
+        "Diretrizes para facilitar a localização e acesso a conteúdos e funcionalidades importantes.",
+    },
+    CONTEUDO_COMPREENSIVEL: {
+      key: "CONTEUDO_COMPREENSIVEL",
+      label: "Usar conteúdo nítido e compreensível",
+      description:
+        "Recomendações para apresentar informações de forma clara, organizada e fácil de entender.",
+    },
+    EVITAR_ERROS: {
+      key: "EVITAR_ERROS",
+      label: "Ajudar usuários a evitar erros e saber como corrigi-los",
+      description:
+        "Estratégias para prevenir erros e fornecer suporte para correção quando ocorrem.",
+    },
+    MANTER_FOCO: {
+      key: "MANTER_FOCO",
+      label: "Ajudar usuários a se concentrarem",
+      description:
+        "Técnicas para reduzir distrações e ajudar usuários a manterem o foco em tarefas.",
+    },
+    PROCESSOS_SEM_MEMORIA: {
+      key: "PROCESSOS_SEM_MEMORIA",
+      label: "Garantir que processos não dependam da memória",
+      description:
+        "Design de processos que não exigem que usuários lembrem informações entre etapas.",
+    },
+    AJUDA_SUPORTE: {
+      key: "AJUDA_SUPORTE",
+      label: "Fornecer ajuda e suporte",
+      description:
+        "Recursos de ajuda acessíveis e suporte contextual para usuários quando necessário.",
+    },
+    ADAPTACAO_PERSONALIZACAO: {
+      key: "ADAPTACAO_PERSONALIZACAO",
+      label: "Permitir adaptação e personalização",
+      description:
+        "Capacidades para adaptar interfaces e conteúdos às necessidades individuais dos usuários.",
+    },
   } as CogaOptions;
 };
