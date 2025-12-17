@@ -120,7 +120,7 @@ const defaultQuestions = [
   },
   {
     text: "O site ou aplicativo ajuda o usuário a manter o contexto (por exemplo, indica onde ele está no processo, na navegação ou no site, mesmo após se distrair)? [Peso: 2]",
-    category: "Ajudar usuários a entender o que são as coisas e como usá-las",
+    category: "ENTENDER_COISAS_USO",
     order: 1,
     isPublic: true,
     createdBy: "system",

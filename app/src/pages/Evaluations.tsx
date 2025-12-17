@@ -37,6 +37,10 @@ const Evaluations: React.FC = () => {
     setFilteredEvaluations(filtered);
   }, [searchTerm, evaluations]);
 
+  const handleRespondEvaluation = (id: string) => {
+    navigate(`/respond/${id}`);
+  };
+
   const handleViewEvaluation = (id: string) => {
     navigate(`/evaluation/${id}`);
   };
@@ -250,6 +254,14 @@ const Evaluations: React.FC = () => {
 
                   {/* Right side - Actions */}
                   <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => evaluation.id && handleRespondEvaluation(evaluation.id)}
+                      className="flex items-center space-x-2 px-4 py-2 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>Responder</span>
+                    </button>
+
                     <button
                       onClick={() => evaluation.id && handleViewEvaluation(evaluation.id)}
                       className="flex items-center space-x-2 px-4 py-2 text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"

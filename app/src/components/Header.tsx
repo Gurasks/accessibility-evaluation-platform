@@ -22,7 +22,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 text-primary-700">
             <Home className="w-6 h-6" />
-            <span className="text-xl font-bold">Avaliador de Acessebilidade</span>
+            <span className="text-xl font-bold">Avaliador de Acessibilidade</span>
           </Link>
 
           <div className="flex items-center space-x-4">

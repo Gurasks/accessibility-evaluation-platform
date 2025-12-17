@@ -3,7 +3,7 @@ import React from 'react';
 
 interface LikertScaleProps {
   value: number | null;
-  onChange: (value: number) => void;
+  onChange: (value: number | null) => void;
 }
 
 const LikertScale: React.FC<LikertScaleProps> = ({ value, onChange }) => {
@@ -29,6 +29,17 @@ const LikertScale: React.FC<LikertScaleProps> = ({ value, onChange }) => {
           </button>
         ))}
       </div>
+      {value !== null && (
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            Limpar seleção
+          </button>
+        </div>
+      )}
     </div>
   );
 };
