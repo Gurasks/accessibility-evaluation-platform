@@ -3,6 +3,7 @@ export interface BaseQuestion {
   likertScore: number | null;
   comment: string;
   category: string;
+  weight: number;
   order?: number;
   isCustom?: boolean;
   createdBy?: string;
@@ -69,5 +70,7 @@ export type Template = {
   category: string;
   questions: UserQuestion[];
 };
+
+export type UserRole = 'adm' | 'evaluator';
 
 export type SavingStatus = "idle" | "saving" | "saved" | "error" | "success";

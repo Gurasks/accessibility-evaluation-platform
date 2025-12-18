@@ -1,9 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc } from "firebase/firestore";
 import * as dotenv from 'dotenv';
 
 // Carrega variáveis do .env.local
-dotenv.config({ path: '.env' });
+dotenv.config({ path: './.env' });
 
 // ⚠️ SUBSTITUA COM SUAS CREDENCIAIS REAIS do Firebase Console
 const firebaseConfig = {
@@ -29,87 +29,16 @@ if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("AIzaSyB")) {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Function to extract weight from text
+function extractWeight(text) {
+  const match = text.match(/\[Peso:\s*(\d+)\]/);
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+  return null;
+}
+
 const defaultQuestions = [
-  {
-    text: "A aplicação fornece instruções claras e simples?",
-    category: "Compreensão",
-    order: 1,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
-  {
-    text: "Os elementos de interface são consistentes e previsíveis?",
-    category: "Consistência",
-    order: 2,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
-  {
-    text: "Há suporte para diferentes formas de entrada (voz, toque, teclado)?",
-    category: "Flexibilidade",
-    order: 3,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
-  {
-    text: "As cores têm contraste adequado para leitura?",
-    category: "Visibilidade",
-    order: 4,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
-  {
-    text: "A navegação é intuitiva e fácil de aprender?",
-    category: "Navegação",
-    order: 5,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
-  {
-    text: "Há feedback claro para ações do usuário?",
-    category: "Feedback",
-    order: 6,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
-  {
-    text: "A aplicação previne e corrige erros do usuário?",
-    category: "Prevenção de Erros",
-    order: 7,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
-  {
-    text: "O tempo de resposta é adequado?",
-    category: "Performance",
-    order: 8,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
-  {
-    text: "O conteúdo é apresentado de forma lógica e hierárquica?",
-    category: "Estrutura",
-    order: 9,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
-  {
-    text: "Há opções de personalização para diferentes necessidades?",
-    category: "Personalização",
-    order: 10,
-    isPublic: true,
-    createdBy: "system",
-    usedCount: 0,
-  },
   {
     text: "A página ou tela apresenta claramente o propósito principal (por exemplo, título descritivo, cabeçalho, ou breve explicação sobre o que o usuário pode fazer ou encontrar ali)? [Peso: 3]",
     category: "ENTENDER_COISAS_USO",
@@ -340,14 +269,36 @@ async function populateQuestions() {
   try {
     console.log("🚀 Iniciando população do banco de dados...");
     console.log(`📁 Coleção: userQuestions`);
-    console.log(`📊 Total de perguntas: ${defaultQuestions.length}`);
+
+    // First, delete questions without weight
+    console.log("🗑️  Removendo perguntas sem peso...");
+    const snapshot = await getDocs(collection(db, "userQuestions"));
+    let deletedCount = 0;
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      if (!data.weight || extractWeight(data.text) === null) {
+        await deleteDoc(doc.ref);
+        deletedCount++;
+        console.log(`🗑️  Removido: ${data.text.substring(0, 50)}...`);
+      }
+    }
+    console.log(`✅ ${deletedCount} perguntas sem peso removidas`);
+
+    console.log(`📊 Total de perguntas a adicionar: ${defaultQuestions.length}`);
 
     let successCount = 0;
 
     for (const question of defaultQuestions) {
+      const weight = extractWeight(question.text);
+      if (weight === null) {
+        console.log(`⚠️  Pulando pergunta sem peso: ${question.text.substring(0, 50)}...`);
+        continue;
+      }
+
       try {
         const questionWithDate = {
           ...question,
+          weight,
           createdAt: new Date()
         };
 

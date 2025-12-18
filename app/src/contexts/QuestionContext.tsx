@@ -9,7 +9,7 @@ interface QuestionContextData {
   predefinedTemplates: Template[];
   loading: boolean;
   error: string | null;
-  createQuestion: (text: string, category: string, isPublic: boolean) => Promise<string>;
+  createQuestion: (text: string, category: string, weight: number, isPublic: boolean) => Promise<string>;
   deleteQuestion: (id: string) => Promise<void>;
   toggleQuestionVisibility: (id: string, isPublic: boolean) => Promise<void>;
   loadQuestions: () => Promise<void>;
@@ -38,7 +38,7 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({ children }) 
   const [error, setError] = useState<string | null>(null);
   const { currentUser } = useAuth();
 
-  const createQuestion = async (text: string, category: string, isPublic: boolean): Promise<string> => {
+  const createQuestion = async (text: string, category: string, weight: number, isPublic: boolean): Promise<string> => {
     if (!currentUser) {
       throw new Error('Usuário não autenticado');
     }
@@ -50,6 +50,7 @@ export const QuestionProvider: React.FC<QuestionProviderProps> = ({ children }) 
       const questionId = await firestoreService.createUserQuestion({
         text,
         category,
+        weight,
         createdBy: currentUser.uid,
         isPublic
       });

@@ -33,7 +33,7 @@ export const EvaluationProvider: React.FC<EvaluationProviderProps> = ({ children
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { currentUser } = useAuth();
+  const { currentUser, role } = useAuth();
 
   // ========== CRIAR AVALIAÇÃO ==========
   const createEvaluation = async (data: EvaluationFormData): Promise<string> => {
@@ -75,7 +75,14 @@ export const EvaluationProvider: React.FC<EvaluationProviderProps> = ({ children
     setError(null);
 
     try {
-      const userEvals = await firestoreService.getUserEvaluations(currentUser.uid);
+      let userEvals: Evaluation[];
+      if (role === 'evaluator') {
+        // Evaluators see all available evaluations
+        userEvals = await firestoreService.getAllEvaluations();
+      } else {
+        // ADM see evaluations they created
+        userEvals = await firestoreService.getUserEvaluations(currentUser.uid);
+      }
       setEvaluations(userEvals);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar avaliações';

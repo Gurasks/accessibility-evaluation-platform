@@ -4,17 +4,21 @@ import { useEvaluation } from '../contexts/EvaluationContext';
 import { Evaluation, FirestoreQuestion } from '../types';
 import { ArrowLeft, Save, CheckCircle } from 'lucide-react';
 import LikertScale from '../components/LikertScale';
+import { useAuth } from '../contexts/AuthContext';
 
 const RespondEvaluation: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getEvaluationById, updateEvaluation } = useEvaluation();
+  const { role } = useAuth();
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [responses, setResponses] = useState<{ [key: string]: { score: number | null; comment: string } }>({});
   const [responsesInitialized, setResponsesInitialized] = useState(false);
+
+  const isAdm = role === 'adm';
 
   useEffect(() => {
     const fetchEvaluation = async () => {
@@ -49,6 +53,8 @@ const RespondEvaluation: React.FC = () => {
 
     fetchEvaluation();
   }, [id]); // Remove getEvaluationById from dependencies
+
+  const allQuestionsAnswered = evaluation && evaluation.questions.every(q => q.likertScore !== null);
 
   const handleScoreChange = useCallback((questionIndex: number, score: number | null) => {
     setResponses(prev => ({
@@ -155,33 +161,37 @@ const RespondEvaluation: React.FC = () => {
                 <p className="text-sm text-gray-600">Progresso</p>
                 <p className="text-lg font-semibold text-gray-900">{calculateProgress}%</p>
               </div>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                {saving ? 'Salvando...' : 'Salvar Respostas'}
-              </button>
+              {!isAdm && (
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  {saving ? 'Salvando...' : 'Salvar Respostas'}
+                </button>
+              )}
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="mt-4">
-            <div className="bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${calculateProgress}%` }}
-              ></div>
+          {!isAdm && (
+            <div className="mt-4">
+              <div className="bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${calculateProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                {Object.values(responses).filter(r => r.score !== null).length} de {evaluation.questions.length} perguntas respondidas
+              </p>
             </div>
-            <p className="text-sm text-gray-600 mt-2">
-              {Object.values(responses).filter(r => r.score !== null).length} de {evaluation.questions.length} perguntas respondidas
-            </p>
-          </div>
+          )}
         </div>
 
         {/* Questions */}
@@ -201,28 +211,40 @@ const RespondEvaluation: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Avaliação (1-5)
-                  </label>
-                  <LikertScale
-                    value={responses[index.toString()]?.score || null}
-                    onChange={(score) => handleScoreChange(index, score)}
-                  />
-                </div>
+                {!isAdm && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Avaliação (1-5)
+                      </label>
+                      <LikertScale
+                        value={responses[index.toString()]?.score || null}
+                        onChange={(score) => handleScoreChange(index, score)}
+                      />
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Comentários (opcional)
-                  </label>
-                  <textarea
-                    value={responses[index.toString()]?.comment || ''}
-                    onChange={(e) => handleCommentChange(index, e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Adicione observações ou comentários sobre esta pergunta..."
-                  />
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Comentários (opcional)
+                      </label>
+                      <textarea
+                        value={responses[index.toString()]?.comment || ''}
+                        onChange={(e) => handleCommentChange(index, e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Adicione observações ou comentários sobre esta pergunta..."
+                      />
+                    </div>
+                  </>
+                )}
+
+                {isAdm && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      Como administrador, você pode visualizar as questões, mas não pode respondê-las.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -230,10 +252,17 @@ const RespondEvaluation: React.FC = () => {
 
         {/* Save Button at Bottom */}
         <div className="mt-8 bg-white shadow rounded-lg p-6">
+          {!allQuestionsAnswered && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                Você deve responder todas as perguntas antes de salvar.
+              </p>
+            </div>
+          )}
           <div className="flex justify-end">
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || !allQuestionsAnswered}
               className="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (

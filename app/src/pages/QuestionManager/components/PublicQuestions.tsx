@@ -3,7 +3,7 @@ import { Users, Star } from "lucide-react";
 
 type PublicQuestionsProps = {
   filteredPublicQuestions: UserQuestion[];
-  handleUseQuestion: (text: string) => void;
+  handleUseQuestion: (question: UserQuestion) => void;
 };
 
 const PublicQuestions: React.FC<PublicQuestionsProps> = ({
@@ -44,7 +44,7 @@ const PublicQuestions: React.FC<PublicQuestionsProps> = ({
                 </p>
               </div>
               <button
-                onClick={() => handleUseQuestion(question.text)}
+                onClick={() => handleUseQuestion(question)}
                 className="ml-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 Usar

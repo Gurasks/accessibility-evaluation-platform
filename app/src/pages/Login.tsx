@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { LogIn, Mail, Lock } from 'lucide-react';
@@ -8,8 +8,18 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, currentUser, role } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentUser && role) {
+      if (role === 'adm') {
+        navigate('/admin');
+      } else {
+        navigate('/evaluations');
+      }
+    }
+  }, [currentUser, role, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +27,7 @@ const Login: React.FC = () => {
       setError('');
       setLoading(true);
       await login(email, password);
-      navigate('/');
+      // Navigation will happen via useEffect when role is loaded
     } catch (err) {
       setError('Falha ao fazer login. Verifique suas credenciais.');
     } finally {

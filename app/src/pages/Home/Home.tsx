@@ -17,10 +17,10 @@ import AppInfoForm from './components/AppInfoForm';
 import QuickActionsMenu from './components/QuickActionsMenu';
 
 const Home: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, role } = useAuth();
+  const navigate = useNavigate();
   const { createEvaluation, loading: saving } = useEvaluation();
   const { loadQuestions } = useQuestion();
-  const navigate = useNavigate();
 
   const [appName, setAppName] = useState('');
   const [description, setDescription] = useState('');
@@ -32,20 +32,22 @@ const Home: React.FC = () => {
   const [templateName, setTemplateName] = useState('');
 
   useEffect(() => {
-    if (currentUser) {
-      loadQuestions();
+    if (role && role !== 'adm') {
+      navigate('/evaluations');
     }
-  }, [currentUser]);
+  }, [role, navigate]);
 
   useEffect(() => {
     const handleUseQuestion = (event: any) => {
+      const question = event.detail;
       const newQuestion: FormQuestion = {
         id: Date.now().toString(),
-        text: event.detail.trim(),
+        text: question.text,
         likertScore: null,
         comment: '',
-        category: 'Geral',
-        isCustom: true
+        category: question.category,
+        weight: question.weight,
+        isCustom: false
       };
       setQuestions([...questions, newQuestion]);
     };
@@ -81,7 +83,16 @@ const Home: React.FC = () => {
     }
 
     // Remover IDs das questões antes de enviar
-    const questionsWithoutIds = questions.map(({ id, ...rest }) => rest); // Validar necessidade disso depois
+    const questionsWithoutIds = questions.map(({ id, ...rest }) => {
+      // Filtrar apenas campos definidos para evitar undefined no Firestore
+      const filteredQuestion: any = {};
+      Object.keys(rest).forEach(key => {
+        if (rest[key as keyof typeof rest] !== undefined) {
+          filteredQuestion[key] = rest[key as keyof typeof rest];
+        }
+      });
+      return filteredQuestion;
+    });
 
     const evaluationData: EvaluationFormData = {
       appName: appName.trim(),
@@ -214,6 +225,7 @@ const Home: React.FC = () => {
                         setQuestions(questions.filter((_, i) => i !== index));
                       }
                     }}
+                    showResponseControls={role === 'evaluator'}
                   />
                 ))}
               </div>

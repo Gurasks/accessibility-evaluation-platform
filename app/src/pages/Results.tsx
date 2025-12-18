@@ -12,6 +12,47 @@ const Results: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Function to extract weight from question text
+  const extractWeight = (question: Evaluation['questions'][0]): number => {
+    return question.weight || 1;
+  };
+
+  // Function to calculate averages
+  const calculateAverages = (questions: Evaluation['questions']) => {
+    const questionAverages: { text: string; average: number; weight: number; count: number }[] = [];
+    let totalWeightedScore = 0;
+    let totalWeight = 0;
+
+    questions.forEach((question, index) => {
+      const weight = extractWeight(question);
+      const scores = questions
+        .map(q => q.likertScore)
+        .filter(score => score !== null) as number[];
+      
+      if (scores.length > 0) {
+        const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+        questionAverages.push({
+          text: question.text,
+          average: Math.round(average * 100) / 100,
+          weight,
+          count: scores.length
+        });
+        
+        // For overall average, use this question's average
+        totalWeightedScore += average * weight;
+        totalWeight += weight;
+      }
+    });
+
+    const overallAverage = totalWeight > 0 ? (totalWeightedScore / totalWeight) * 2 : 0; // Scale to 0-10
+    const normalizedOverall = Math.min(10, Math.max(0, overallAverage)); // Ensure 0-10
+
+    return {
+      questionAverages,
+      overallAverage: Math.round(normalizedOverall * 100) / 100
+    };
+  };
+
   useEffect(() => {
     const fetchEvaluation = async () => {
       if (!id) return;
@@ -84,6 +125,8 @@ const Results: React.FC = () => {
   const answeredQuestions = evaluation.questions.filter(q => q.likertScore !== null).length;
   const averageScore = evaluation.averageScore || 0;
 
+  const { questionAverages, overallAverage } = calculateAverages(evaluation.questions);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -136,14 +179,10 @@ const Results: React.FC = () => {
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-600">%</span>
-              </div>
+              <BarChart3 className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Taxa de Conclusão</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0}%
-                </p>
+                <p className="text-sm font-medium text-gray-600">Média Ponderada (0-10)</p>
+                <p className="text-2xl font-bold text-gray-900">{overallAverage.toFixed(1)}</p>
               </div>
             </div>
           </div>
@@ -187,6 +226,29 @@ const Results: React.FC = () => {
                         </p>
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Question Averages */}
+        <div className="bg-white shadow rounded-lg mt-6">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">Média por Questão</h2>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {questionAverages.map((item, index) => (
+              <div key={index} className="px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{item.text}</p>
+                    <p className="text-sm text-gray-500">Peso: {item.weight} | Respostas: {item.count}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-semibold text-gray-900">{item.average}</span>
+                    <span className="text-sm text-gray-500 ml-1">/5</span>
                   </div>
                 </div>
               </div>

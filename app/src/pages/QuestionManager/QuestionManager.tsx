@@ -21,11 +21,12 @@ const QuestionManager: React.FC<{ selectedQuestions: string[] }> = ({ selectedQu
   const [activeTab, setActiveTab] = useState<QuestionFiltersTabs>('mine');
   const [newQuestion, setNewQuestion] = useState('');
   const [category, setCategory] = useState('Geral');
+  const [weight, setWeight] = useState(1);
   const [isPublic, setIsPublic] = useState(false);
 
   const cogaCategories = getCogaCategories();
 
-  const handleUseQuestion = (question: string) => {
+  const handleUseQuestion = (question: UserQuestion) => {
     // Emitir evento para o formulário pai
     const event = new CustomEvent('useQuestion', { detail: question });
     window.dispatchEvent(event);
@@ -74,6 +75,8 @@ const QuestionManager: React.FC<{ selectedQuestions: string[] }> = ({ selectedQu
         setNewQuestion={setNewQuestion}
         category={category}
         setCategory={setCategory}
+        weight={weight}
+        setWeight={setWeight}
         isPublic={isPublic}
         setIsPublic={setIsPublic}
       />

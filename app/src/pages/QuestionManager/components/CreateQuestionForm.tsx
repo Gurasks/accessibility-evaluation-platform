@@ -10,6 +10,8 @@ type CreateFormFormProps = {
   setNewQuestion: (text: string) => void;
   category: string;
   setCategory: (category: string) => void;
+  weight: number;
+  setWeight: (weight: number) => void;
   isPublic: boolean;
   setIsPublic: (isPublic: boolean) => void;
 };
@@ -20,6 +22,8 @@ const CreateFormForm: React.FC<CreateFormFormProps> = ({
   setNewQuestion,
   category,
   setCategory,
+  weight,
+  setWeight,
   isPublic,
   setIsPublic
 }) => {
@@ -35,9 +39,10 @@ const CreateFormForm: React.FC<CreateFormFormProps> = ({
     if (!newQuestion.trim()) return;
 
     try {
-      await createQuestion(newQuestion.trim(), category, isPublic);
+      await createQuestion(newQuestion.trim(), category, weight, isPublic);
       setNewQuestion('');
       setCategory('Geral');
+      setWeight(1);
       setIsPublic(false);
     } catch (error) {
       console.error('Erro ao criar pergunta:', error);
@@ -60,7 +65,7 @@ const CreateFormForm: React.FC<CreateFormFormProps> = ({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Categoria
@@ -74,6 +79,21 @@ const CreateFormForm: React.FC<CreateFormFormProps> = ({
               <option key={cat.key} value={cat.label}>{cat.label}</option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Peso
+          </label>
+          <input
+            type="number"
+            min="1"
+            max="3"
+            value={weight}
+            onChange={(e) => setWeight(parseInt(e.target.value) || 1)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder="1"
+          />
         </div>
 
         <div className="flex items-center">

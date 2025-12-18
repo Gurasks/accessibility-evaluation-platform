@@ -8,7 +8,8 @@ const Signup: React.FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    name: ''
+    name: '',
+    role: 'evaluator' as 'adm' | 'evaluator'
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -72,7 +73,7 @@ const Signup: React.FC = () => {
       setSuccess('');
       setLoading(true);
 
-      await signup(formData.email, formData.password);
+      await signup(formData.email, formData.password, formData.name, formData.role);
 
       setSuccess('Conta criada com sucesso! Redirecionando...');
 
@@ -322,6 +323,43 @@ const Signup: React.FC = () => {
                   Senhas coincidem
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Tipo de Usuário */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Tipo de Usuário
+            </label>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <input
+                  id="evaluator"
+                  name="role"
+                  type="radio"
+                  value="evaluator"
+                  checked={formData.role === 'evaluator'}
+                  onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as 'adm' | 'evaluator' }))}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                />
+                <label htmlFor="evaluator" className="ml-3 block text-sm font-medium text-gray-700">
+                  Avaliador - Responder avaliações de acessibilidade
+                </label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  id="adm"
+                  name="role"
+                  type="radio"
+                  value="adm"
+                  checked={formData.role === 'adm'}
+                  onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as 'adm' | 'evaluator' }))}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                />
+                <label htmlFor="adm" className="ml-3 block text-sm font-medium text-gray-700">
+                  ADM - Criar e gerenciar formulários de avaliação
+                </label>
+              </div>
             </div>
           </div>
 

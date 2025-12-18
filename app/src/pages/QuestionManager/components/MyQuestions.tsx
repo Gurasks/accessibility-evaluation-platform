@@ -5,7 +5,7 @@ import { UserQuestion } from '@/types';
 
 type MyQuestionsProps = {
   filteredUserQuestions: UserQuestion[];
-  handleUseQuestion: (question: string) => void;
+  handleUseQuestion: (question: UserQuestion) => void;
 };
 
 const MyQuestions: React.FC<MyQuestionsProps> = (
@@ -51,7 +51,7 @@ const MyQuestions: React.FC<MyQuestionsProps> = (
               </div>
               <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => handleUseQuestion(question.text)}
+                  onClick={() => handleUseQuestion(question)}
                   className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                   title="Usar pergunta"
                 >

@@ -131,6 +131,38 @@ class FirestoreService {
     }
   }
 
+  // ========== BUSCAR TODAS AS AVALIAÇÕES ==========
+
+  async getAllEvaluations(): Promise<Evaluation[]> {
+    try {
+      console.log(`🔍 Buscando todas as avaliações...`);
+
+      const snapshot = await getDocs(collection(db, "evaluations"));
+
+      const allEvaluations = snapshot.docs.map((doc) =>
+        this.mapFirestoreToEvaluation(doc.id, doc.data())
+      );
+
+      // Filtra apenas avaliações (não respostas)
+      const evaluations = allEvaluations.filter(
+        (evalItem) => !evalItem.isResponse
+      );
+
+      // Ordena por data (mais recente primeiro)
+      evaluations.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+      );
+
+      console.log(
+        `✅ ${evaluations.length} avaliações encontradas`
+      );
+      return evaluations;
+    } catch (error) {
+      console.error("❌ Erro ao buscar todas as avaliações:", error);
+      throw error;
+    }
+  }
+
   // ========== PERGUNTAS DO USUÁRIO ==========
 
   async createUserQuestion(

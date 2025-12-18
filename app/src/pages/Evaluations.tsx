@@ -17,7 +17,7 @@ import { Evaluation } from '../types';
 
 const Evaluations: React.FC = () => {
   const { evaluations, loading, error, getUserEvaluations, deleteEvaluation } = useEvaluation();
-  const { currentUser } = useAuth();
+  const { currentUser, role } = useAuth();
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -88,10 +88,13 @@ const Evaluations: React.FC = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Minhas Avaliações
+          {role === 'adm' ? 'Resultados das Avaliações' : 'Minhas Avaliações'}
         </h1>
         <p className="text-gray-600">
-          Todas as suas avaliações salvas na nuvem
+          {role === 'adm' 
+            ? 'Visualize os resultados e médias das avaliações realizadas'
+            : 'Avaliações disponíveis para responder e já respondidas'
+          }
         </p>
       </div>
 
@@ -254,17 +257,26 @@ const Evaluations: React.FC = () => {
 
                   {/* Right side - Actions */}
                   <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => evaluation.id && handleRespondEvaluation(evaluation.id)}
-                      className="flex items-center space-x-2 px-4 py-2 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-                    >
-                      <FileText className="w-4 h-4" />
-                      <span>Responder</span>
-                    </button>
+                    {role === 'evaluator' && (
+                      <button
+                        onClick={() => evaluation.id && handleRespondEvaluation(evaluation.id)}
+                        className="flex items-center space-x-2 px-4 py-2 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                      >
+                        <FileText className="w-4 h-4" />
+                        <span>Responder</span>
+                      </button>
+                    )}
 
                     <button
                       onClick={() => evaluation.id && handleViewEvaluation(evaluation.id)}
-                      className="flex items-center space-x-2 px-4 py-2 text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                        role === 'evaluator' && evaluation.questions.filter(q => q.likertScore !== null).length === evaluation.questions.length
+                          ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                          : role === 'adm'
+                          ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                          : 'text-gray-400 bg-gray-50 cursor-not-allowed'
+                      }`}
+                      disabled={role === 'evaluator' && evaluation.questions.filter(q => q.likertScore !== null).length !== evaluation.questions.length}
                     >
                       <Eye className="w-4 h-4" />
                       <span>Ver Detalhes</span>

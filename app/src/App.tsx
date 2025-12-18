@@ -28,6 +28,7 @@ function App() {
                 </PrivateRoute>
               }>
                 <Route index element={<Home />} />
+                <Route path="admin" element={<Home />} />
                 <Route path="evaluations" element={<Evaluations />} />
                 <Route path="evaluation/:id" element={<Results />} />
                 <Route path="respond/:id" element={<RespondEvaluation />} />
