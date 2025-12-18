@@ -18,39 +18,52 @@ const Results: React.FC = () => {
     return question.weight || 1;
   };
 
-  // Function to calculate averages
-  const calculateAverages = (questions: Evaluation['questions']) => {
+  // Function to calculate averages across stored responses
+  // Returns per-question averages (0-5), simple overall average (0-5) and weighted average (0-10)
+  const calculateAverages = (evaluation: Evaluation) => {
     const questionAverages: { text: string; average: number; weight: number; count: number }[] = [];
     let totalWeightedScore = 0;
     let totalWeight = 0;
+    let sumAllScores = 0;
+    let countAllScores = 0;
+
+    const responses = evaluation.responses || [];
+    const questions = evaluation.questions || [];
 
     questions.forEach((question, index) => {
       const weight = extractWeight(question);
-      const scores = questions
-        .map(q => q.likertScore)
-        .filter(score => score !== null) as number[];
-      
+      const scores = responses
+        .map(r => r.questions && r.questions[index] ? r.questions[index].likertScore : null)
+        .filter((s): s is number => s !== null && s !== undefined);
+
       if (scores.length > 0) {
         const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
         questionAverages.push({
           text: question.text,
           average: Math.round(average * 100) / 100,
           weight,
-          count: scores.length
+          count: scores.length,
         });
-        
-        // For overall average, use this question's average
+
+        // For weighted overall (0-10) accumulate question average * weight
         totalWeightedScore += average * weight;
         totalWeight += weight;
+
+        // For simple overall (0-5) accumulate all individual scores
+        sumAllScores += scores.reduce((s, v) => s + v, 0);
+        countAllScores += scores.length;
       }
     });
 
-    const overallAverage = totalWeight > 0 ? (totalWeightedScore / totalWeight) * 2 : 0; // Scale to 0-10
-    const normalizedOverall = Math.min(10, Math.max(0, overallAverage)); // Ensure 0-10
+    const overallSimple = countAllScores > 0 ? sumAllScores / countAllScores : 0; // 0-5 scale
+    const weightedOverall = totalWeight > 0 ? (totalWeightedScore / totalWeight) * 2 : 0; // convert 0-5 to 0-10
+
+    const normalizedWeighted = Math.min(10, Math.max(0, weightedOverall));
 
     return {
       questionAverages,
-      overallAverage: Math.round(normalizedOverall * 100) / 100
+      overallSimple: Math.round(overallSimple * 100) / 100,
+      overallWeighted: Math.round(normalizedWeighted * 100) / 100,
     };
   };
 
@@ -88,6 +101,14 @@ const Results: React.FC = () => {
     } catch (err) {
       return '';
     }
+  };
+
+  const getNameFromEmail = (email?: string | null) => {
+    if (!email) return 'Usuário';
+    const local = email.split('@')[0];
+    const cleaned = local.replace(/[._-]+/g, ' ');
+    const firstToken = cleaned.split(' ')[0];
+    return firstToken ? firstToken.charAt(0).toUpperCase() + firstToken.slice(1) : local;
   };
 
   const handleExport = () => {
@@ -137,11 +158,10 @@ const Results: React.FC = () => {
   }
 
   const totalQuestions = evaluation.questions.length;
-  const answeredQuestions = evaluation.questions.filter(q => q.likertScore !== null).length;
-  const averageScore = evaluation.averageScore || 0;
+  const responsesCount = evaluation.responsesCount || (evaluation.responses ? evaluation.responses.length : 0);
   const { role } = useAuth();
 
-  const { questionAverages, overallAverage } = calculateAverages(evaluation.questions);
+  const { questionAverages, overallSimple, overallWeighted } = calculateAverages(evaluation);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -180,28 +200,26 @@ const Results: React.FC = () => {
             <div className="flex items-center">
               <BarChart3 className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pontuação Média</p>
-                <p className="text-2xl font-bold text-gray-900">{averageScore.toFixed(1)}</p>
+                <p className="text-sm font-medium text-gray-600">Pontuação Média (0-5)</p>
+                <p className="text-2xl font-bold text-gray-900">{overallSimple.toFixed(1)}</p>
               </div>
             </div>
           </div>
-          {role !== 'adm' && (
-            <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-white shadow rounded-lg p-6">
             <div className="flex items-center">
               <FileText className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Questões Respondidas</p>
-                <p className="text-2xl font-bold text-gray-900">{answeredQuestions}/{totalQuestions}</p>
+                <p className="text-sm font-medium text-gray-600">Respostas Recebidas</p>
+                <p className="text-2xl font-bold text-gray-900">{responsesCount}</p>
               </div>
             </div>
-            </div>
-          )}
+          </div>
           <div className="bg-white shadow rounded-lg p-6">
             <div className="flex items-center">
               <BarChart3 className="h-8 w-8 text-purple-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Média Ponderada (0-10)</p>
-                <p className="text-2xl font-bold text-gray-900">{overallAverage.toFixed(1)}</p>
+                <p className="text-2xl font-bold text-gray-900">{overallWeighted.toFixed(1)}</p>
               </div>
             </div>
           </div>
@@ -225,17 +243,23 @@ const Results: React.FC = () => {
                         {question.category}
                       </span>
                     )}
-                    <div className="mt-2">
-                      {question.likertScore !== null ? (
-                        <div className="flex items-center">
-                          <span className="text-sm text-gray-600 mr-2">Pontuação:</span>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            {question.likertScore}/5
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-gray-500 italic">Não respondida</span>
-                      )}
+                            <div className="mt-2">
+                              {evaluation.responses && evaluation.responses.length > 0 ? (
+                                <div className="flex items-center flex-wrap gap-2">
+                                  <span className="text-sm text-gray-600 mr-2">Respostas:</span>
+                                  {evaluation.responses.map((r, ridx) => {
+                                    const score = r.questions && r.questions[index] ? r.questions[index].likertScore : null;
+                                    if (score === null || score === undefined) return null;
+                                    return (
+                                      <span key={ridx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        {score}/5
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <span className="text-sm text-gray-500 italic">Nenhuma resposta</span>
+                              )}
                     </div>
                     {question.comment && (
                       <div className="mt-2">

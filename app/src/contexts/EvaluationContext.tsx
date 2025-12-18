@@ -119,7 +119,12 @@ export const EvaluationProvider: React.FC<EvaluationProviderProps> = ({ children
     setError(null);
 
     try {
-      await firestoreService.updateEvaluation(id, data);
+      // If the current user is an evaluator submitting answers, pass responder info
+      if (role === 'evaluator' && data.questions) {
+        await firestoreService.updateEvaluation(id, data, { id: currentUser.uid, email: currentUser.email || '' });
+      } else {
+        await firestoreService.updateEvaluation(id, data);
+      }
 
       // Atualiza a lista local
       await getUserEvaluations();

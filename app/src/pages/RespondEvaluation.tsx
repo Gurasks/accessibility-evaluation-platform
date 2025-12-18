@@ -10,7 +10,7 @@ const RespondEvaluation: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getEvaluationById, updateEvaluation } = useEvaluation();
-  const { role } = useAuth();
+  const { role, currentUser } = useAuth();
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,10 +30,13 @@ const RespondEvaluation: React.FC = () => {
           setEvaluation(evalData);
           // Only initialize responses if they haven't been set yet
           if (!responsesInitialized) {
+            // Try to find an existing response from the current user
+            const userResponse = evalData.responses?.find(r => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email);
             const initialResponses: { [key: string]: { score: number | null; comment: string } } = {};
-            evalData.questions.forEach((q, index) => {
+            const baseQuestions = userResponse ? userResponse.questions : evalData.questions;
+            baseQuestions.forEach((q, index) => {
               initialResponses[index.toString()] = {
-                score: q.likertScore,
+                score: q.likertScore ?? null,
                 comment: q.comment || ''
               };
             });
@@ -54,7 +57,8 @@ const RespondEvaluation: React.FC = () => {
     fetchEvaluation();
   }, [id]); // Remove getEvaluationById from dependencies
 
-  const allQuestionsAnswered = evaluation && evaluation.questions.every(q => q.likertScore !== null);
+  const allQuestionsAnswered = Boolean(evaluation) && Object.keys(responses).length === evaluation!.questions.length &&
+    Object.values(responses).every(r => r.score !== null);
 
   const handleScoreChange = useCallback((questionIndex: number, score: number | null) => {
     setResponses(prev => ({
@@ -161,20 +165,6 @@ const RespondEvaluation: React.FC = () => {
                 <p className="text-sm text-gray-600">Progresso</p>
                 <p className="text-lg font-semibold text-gray-900">{calculateProgress}%</p>
               </div>
-              {!isAdm && (
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  ) : (
-                    <Save className="mr-2 h-4 w-4" />
-                  )}
-                  {saving ? 'Salvando...' : 'Salvar Respostas'}
-                </button>
-              )}
             </div>
           </div>
 

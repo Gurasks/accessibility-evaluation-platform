@@ -41,6 +41,14 @@ export interface Evaluation {
   originalEvaluationId?: string;
   isResponse?: boolean;
   respondedTo?: string;
+  // New: multiple responses from different evaluators
+  responses?: {
+    evaluatorId: string;
+    evaluatorEmail: string;
+    createdAt: Date;
+    questions: FirestoreQuestion[];
+  }[];
+  responsesCount?: number;
 }
 
 export interface EvaluationFormData {

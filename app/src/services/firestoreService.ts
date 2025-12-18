@@ -47,6 +47,8 @@ class FirestoreService {
         questions: data.questions, // Já são StoredQuestion (sem IDs)
         evaluatorId: userId,
         evaluatorEmail: userEmail,
+        responses: [],
+        responsesCount: 0,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
         totalScore: this.calculateTotalScore(data.questions),
@@ -218,24 +220,58 @@ class FirestoreService {
 
   async updateEvaluation(
     evaluationId: string,
-    data: Partial<EvaluationFormData>
+    data: Partial<EvaluationFormData>,
+    responder?: { id: string; email: string }
   ): Promise<void> {
     try {
       console.log(`🔄 Atualizando avaliação ${evaluationId}...`);
 
       const docRef = doc(db, "evaluations", evaluationId);
-      const updateData: any = {
-        updatedAt: Timestamp.now(),
-        ...data,
-      };
+      // If this update is a responder submitting answers, store them under `responses` instead of overwriting top-level questions
+      if (responder && data.questions) {
+        // Fetch current document
+        const snap = await getDoc(docRef);
+        const current = snap.exists() ? snap.data() : {};
 
-      // Se houver questões, recalcula os scores
-      if (data.questions) {
-        updateData.totalScore = this.calculateTotalScore(data.questions);
-        updateData.averageScore = this.calculateAverageScore(data.questions);
+        const existingResponses = Array.isArray(current.responses) ? current.responses : [];
+
+        // Prepare response object
+        const responseObj = {
+          evaluatorId: responder.id,
+          evaluatorEmail: responder.email,
+          createdAt: Timestamp.now(),
+          questions: data.questions,
+        };
+
+        // Check if evaluator already responded -> replace, else push
+        const idx = existingResponses.findIndex((r: any) => r.evaluatorId === responder.id || r.evaluatorEmail === responder.email);
+        if (idx >= 0) {
+          existingResponses[idx] = responseObj;
+        } else {
+          existingResponses.push(responseObj);
+        }
+
+        const updateData: any = {
+          updatedAt: Timestamp.now(),
+          responses: existingResponses,
+          responsesCount: existingResponses.length,
+        };
+
+        await updateDoc(docRef, updateData);
+      } else {
+        const updateData: any = {
+          updatedAt: Timestamp.now(),
+          ...data,
+        };
+
+        // If there are top-level questions being updated by author/admin, recalc scores as before
+        if (data.questions) {
+          updateData.totalScore = this.calculateTotalScore(data.questions);
+          updateData.averageScore = this.calculateAverageScore(data.questions);
+        }
+
+        await updateDoc(docRef, updateData);
       }
-
-      await updateDoc(docRef, updateData);
       console.log(`✅ Avaliação ${evaluationId} atualizada com sucesso!`);
     } catch (error) {
       console.error(`❌ Erro ao atualizar avaliação ${evaluationId}:`, error);
@@ -349,6 +385,16 @@ class FirestoreService {
       })) as FirestoreQuestion[],
       evaluatorId: data.evaluatorId,
       evaluatorEmail: data.evaluatorEmail,
+      responses: (data.responses || []).map((r: any) => ({
+        evaluatorId: r.evaluatorId,
+        evaluatorEmail: r.evaluatorEmail,
+        createdAt: r.createdAt?.toDate ? r.createdAt.toDate() : new Date(r.createdAt),
+        questions: (r.questions || []).map((q: any, index: number) => ({
+          ...q,
+          id: `r-${index}`,
+        })) as FirestoreQuestion[],
+      })),
+      responsesCount: data.responsesCount || (Array.isArray(data.responses) ? data.responses.length : 0),
       createdAt: data.createdAt?.toDate() || new Date(),
       updatedAt: data.updatedAt?.toDate() || new Date(),
       totalScore: data.totalScore,
