@@ -63,7 +63,6 @@ export interface UserQuestion {
   id?: string;
   text: string;
   category: string;
-  weight?: number;
   createdBy: string;
   createdAt: Date;
   isPublic: boolean;
