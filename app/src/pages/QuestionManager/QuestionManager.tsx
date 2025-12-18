@@ -1,5 +1,5 @@
 import { getCogaCategories } from '@/services/globalServices';
-import { QuestionFiltersTabs } from '@/types';
+import { QuestionFiltersTabs, UserQuestion } from '@/types';
 import React, { useState } from 'react';
 import { useQuestion } from '../../contexts/QuestionContext';
 import CreateQuestionForm from './components/CreateQuestionForm';

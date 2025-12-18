@@ -78,17 +78,47 @@ class FirestoreService {
       console.log(`🔍 Buscando avaliação ${evaluationId}...`);
 
       const docRef = doc(db, "evaluations", evaluationId);
-      const docSnap = await getDoc(docRef);
+      let docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        const evaluation = this.mapFirestoreToEvaluation(
-          docSnap.id,
-          docSnap.data()
-        );
-        console.log(
-          `✅ Avaliação ${evaluationId} encontrada:`,
-          evaluation.appName
-        );
+        const initialData = docSnap.data();
+
+        // If the requested doc is itself a response document, load the original evaluation instead
+        if (initialData && initialData.isResponse && initialData.originalEvaluationId) {
+          const parentRef = doc(db, "evaluations", initialData.originalEvaluationId);
+          const parentSnap = await getDoc(parentRef);
+          if (parentSnap.exists()) {
+            docSnap = parentSnap;
+          }
+        }
+
+          const data = docSnap.data() as DocumentData;
+          let evaluation = this.mapFirestoreToEvaluation(docSnap.id, data);
+
+        // Also fetch individual response documents (isResponse === true) linked to this evaluation
+        try {
+          const snapshot = await getDocs(collection(db, "evaluations"));
+          const responseDocs = snapshot.docs
+            .map(d => ({ id: d.id, data: d.data() }))
+            .filter(d => d.data && d.data.isResponse === true && d.data.originalEvaluationId === docSnap.id);
+
+          const mappedResponses = responseDocs.map(d => ({
+            evaluatorId: d.data.evaluatorId,
+            evaluatorEmail: d.data.evaluatorEmail,
+            createdAt: d.data.createdAt?.toDate ? d.data.createdAt.toDate() : new Date(d.data.createdAt),
+            questions: (d.data.questions || []).map((q: any, index: number) => ({ ...q, id: `r-${index}` })) as FirestoreQuestion[]
+          }));
+
+          evaluation = {
+            ...evaluation,
+            responses: mappedResponses,
+            responsesCount: mappedResponses.length
+          };
+        } catch (e) {
+          console.error('Erro ao buscar documentos de resposta relacionados:', e);
+        }
+
+        console.log(`✅ Avaliação ${evaluationId} encontrada:`, evaluation.appName);
         return evaluation;
       }
 
@@ -106,26 +136,46 @@ class FirestoreService {
     try {
       console.log(`🔍 Buscando avaliações do usuário ${userId}...`);
 
-      // Query simplificada para evitar necessidade de índice
+      // Query simplificada: buscar todos os documentos e agregar respostas
       const snapshot = await getDocs(collection(db, "evaluations"));
 
-      const allEvaluations = snapshot.docs.map((doc) =>
-        this.mapFirestoreToEvaluation(doc.id, doc.data())
-      );
+      const docs = snapshot.docs.map(d => ({ id: d.id, data: d.data() })) as { id: string; data: any }[];
 
-      // Filtra no JavaScript (não precisa de índice)
-      const userEvaluations = allEvaluations.filter(
-        (evalItem) => evalItem.evaluatorId === userId && !evalItem.isResponse
-      );
+      // Map all docs to evaluations
+      const allEvaluations = docs.map(d => this.mapFirestoreToEvaluation(d.id, d.data));
+
+      // Filter only parent evaluations created by this user
+      const userEvaluations = allEvaluations.filter(e => e.evaluatorId === userId && !e.isResponse);
+
+      // For each parent evaluation, compute aggregated responses from response docs
+      const responseDocs = docs.filter(d => d.data && d.data.isResponse === true);
+
+      userEvaluations.forEach(ev => {
+        const responsesFor = responseDocs.filter(d => d.data.originalEvaluationId === ev.id);
+        const mapped = responsesFor.map(d => ({
+          evaluatorId: d.data.evaluatorId,
+          evaluatorEmail: d.data.evaluatorEmail,
+          createdAt: d.data.createdAt?.toDate ? d.data.createdAt.toDate() : new Date(d.data.createdAt),
+          questions: (d.data.questions || []).map((q: any, idx: number) => ({ ...q, id: `r-${idx}` })) as FirestoreQuestion[],
+          averageScore: d.data.averageScore,
+          totalScore: d.data.totalScore
+        }));
+
+        ev.responses = mapped as any;
+        ev.responsesCount = mapped.length;
+
+        // Recompute parent average based on responses if present
+        if (mapped.length > 0) {
+          // average of response.averageScore values (0-5)
+          const avg = mapped.reduce((s, r) => s + (typeof r.averageScore === 'number' ? r.averageScore : this.calculateAverageScore(r.questions)), 0) / mapped.length;
+          ev.averageScore = parseFloat(avg.toFixed(2));
+        }
+      });
 
       // Ordena por data (mais recente primeiro)
-      userEvaluations.sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      );
+      userEvaluations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-      console.log(
-        `✅ ${userEvaluations.length} avaliações encontradas para o usuário`
-      );
+      console.log(`✅ ${userEvaluations.length} avaliações encontradas para o usuário`);
       return userEvaluations;
     } catch (error) {
       console.error("❌ Erro ao buscar avaliações do usuário:", error);
@@ -140,24 +190,40 @@ class FirestoreService {
       console.log(`🔍 Buscando todas as avaliações...`);
 
       const snapshot = await getDocs(collection(db, "evaluations"));
+      const docs = snapshot.docs.map(d => ({ id: d.id, data: d.data() })) as { id: string; data: any }[];
 
-      const allEvaluations = snapshot.docs.map((doc) =>
-        this.mapFirestoreToEvaluation(doc.id, doc.data())
-      );
+      const allEvaluations = docs.map(d => this.mapFirestoreToEvaluation(d.id, d.data));
 
       // Filtra apenas avaliações (não respostas)
-      const evaluations = allEvaluations.filter(
-        (evalItem) => !evalItem.isResponse
-      );
+      const evaluations = allEvaluations.filter(evalItem => !evalItem.isResponse);
+
+      // Build map of response docs by originalEvaluationId
+      const responseDocs = docs.filter(d => d.data && d.data.isResponse === true);
+
+      evaluations.forEach(ev => {
+        const responsesFor = responseDocs.filter(d => d.data.originalEvaluationId === ev.id);
+        const mapped = responsesFor.map(d => ({
+          evaluatorId: d.data.evaluatorId,
+          evaluatorEmail: d.data.evaluatorEmail,
+          createdAt: d.data.createdAt?.toDate ? d.data.createdAt.toDate() : new Date(d.data.createdAt),
+          questions: (d.data.questions || []).map((q: any, idx: number) => ({ ...q, id: `r-${idx}` })) as FirestoreQuestion[],
+          averageScore: d.data.averageScore,
+          totalScore: d.data.totalScore
+        }));
+
+        ev.responses = mapped as any;
+        ev.responsesCount = mapped.length;
+
+        if (mapped.length > 0) {
+          const avg = mapped.reduce((s, r) => s + (typeof r.averageScore === 'number' ? r.averageScore : this.calculateAverageScore(r.questions)), 0) / mapped.length;
+          ev.averageScore = parseFloat(avg.toFixed(2));
+        }
+      });
 
       // Ordena por data (mais recente primeiro)
-      evaluations.sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      );
+      evaluations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-      console.log(
-        `✅ ${evaluations.length} avaliações encontradas`
-      );
+      console.log(`✅ ${evaluations.length} avaliações encontradas`);
       return evaluations;
     } catch (error) {
       console.error("❌ Erro ao buscar todas as avaliações:", error);
@@ -229,35 +295,59 @@ class FirestoreService {
       const docRef = doc(db, "evaluations", evaluationId);
       // If this update is a responder submitting answers, store them under `responses` instead of overwriting top-level questions
       if (responder && data.questions) {
-        // Fetch current document
-        const snap = await getDoc(docRef);
-        const current = snap.exists() ? snap.data() : {};
+        // For evaluator responses, create/update a separate response document
+        // Search for an existing response doc for this evaluation by this responder
+        const snapshot = await getDocs(collection(db, "evaluations"));
+        const allEvals = snapshot.docs.map((d) => ({ id: d.id, data: d.data() }));
 
-        const existingResponses = Array.isArray(current.responses) ? current.responses : [];
+        const existingResponse = allEvals.find((d: any) => {
+          const dd = d.data;
+          return dd && dd.isResponse === true && dd.originalEvaluationId === evaluationId && dd.evaluatorId === responder.id;
+        });
 
-        // Prepare response object
-        const responseObj = {
-          evaluatorId: responder.id,
-          evaluatorEmail: responder.email,
-          createdAt: Timestamp.now(),
-          questions: data.questions,
-        };
+        const totalScore = this.calculateTotalScore(data.questions as StoredQuestion[]);
+        const averageScore = this.calculateAverageScore(data.questions as StoredQuestion[]);
 
-        // Check if evaluator already responded -> replace, else push
-        const idx = existingResponses.findIndex((r: any) => r.evaluatorId === responder.id || r.evaluatorEmail === responder.email);
-        if (idx >= 0) {
-          existingResponses[idx] = responseObj;
+        if (existingResponse) {
+          // Update the existing response document
+          const respDocRef = doc(db, "evaluations", existingResponse.id);
+          const updateData: any = {
+            questions: data.questions,
+            updatedAt: Timestamp.now(),
+            totalScore,
+            averageScore,
+          };
+          await updateDoc(respDocRef, updateData);
         } else {
-          existingResponses.push(responseObj);
+          // Create a new response document linked to the original evaluation
+          const responseDoc = {
+            appName: data.appName || "",
+            description: data.description || "",
+            questions: data.questions,
+            evaluatorId: responder.id,
+            evaluatorEmail: responder.email,
+            isResponse: true,
+            originalEvaluationId: evaluationId,
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+            totalScore,
+            averageScore,
+          };
+
+          await addDoc(this.evaluationsCollection, responseDoc as any);
+
+          // Increment responsesCount on the parent evaluation
+          try {
+            const parentSnap = await getDoc(docRef);
+            if (parentSnap.exists()) {
+              const parentData = parentSnap.data() as any;
+              const newCount = (parentData.responsesCount || 0) + 1;
+              await updateDoc(docRef, { responsesCount: newCount, updatedAt: Timestamp.now() });
+            }
+          } catch (e) {
+            console.error('Erro ao atualizar contador de respostas do documento pai:', e);
+          }
         }
-
-        const updateData: any = {
-          updatedAt: Timestamp.now(),
-          responses: existingResponses,
-          responsesCount: existingResponses.length,
-        };
-
-        await updateDoc(docRef, updateData);
       } else {
         const updateData: any = {
           updatedAt: Timestamp.now(),
@@ -425,17 +515,30 @@ class FirestoreService {
   }
 
   private calculateTotalScore(questions: StoredQuestion[]): number {
+    // Total ponderado: soma(score * weight) , tratando valores indefinidos
     return questions.reduce((total, question) => {
-      return total + (question.likertScore || 0);
+      const score = typeof question.likertScore === 'number' ? question.likertScore : 0;
+      const weight = typeof question.weight === 'number' && question.weight > 0 ? question.weight : 1;
+      return total + score * weight;
     }, 0);
   }
 
   private calculateAverageScore(questions: StoredQuestion[]): number {
-    const validScores = questions.filter((q) => q.likertScore !== null);
-    if (validScores.length === 0) return 0;
+    // Consider only answered questions (numeric scores)
+    const answered = questions.filter((q) => typeof q.likertScore === 'number');
+    if (answered.length === 0) return 0;
 
-    const total = this.calculateTotalScore(validScores);
-    return parseFloat((total / validScores.length).toFixed(2));
+    // Weighted average: sum(score * weight) / sum(weights)
+    const weightedSum = answered.reduce((sum, q) => {
+      const weight = typeof q.weight === 'number' && q.weight > 0 ? q.weight : 1;
+      return sum + (q.likertScore as number) * weight;
+    }, 0);
+
+    const totalWeight = answered.reduce((sum, q) => {
+      return sum + (typeof q.weight === 'number' && q.weight > 0 ? q.weight : 1);
+    }, 0);
+
+    return parseFloat((weightedSum / totalWeight).toFixed(2));
   }
 }
 

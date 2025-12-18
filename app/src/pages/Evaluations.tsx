@@ -252,12 +252,13 @@ const Evaluations: React.FC = () => {
                       </div>
                     </div>
 
+                    {role !== 'adm' && (
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-gray-700">Progresso:</span>
                         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                           {(() => {
                             const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
-                            const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore !== null).length : 0;
+                            const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore != null).length : 0;
                             const percent = evaluation.questions.length > 0 ? (answered / evaluation.questions.length) * 100 : 0;
                             return (
                               <div
@@ -270,11 +271,12 @@ const Evaluations: React.FC = () => {
                         <span className="text-sm text-gray-600">
                           {(() => {
                             const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
-                            const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore !== null).length : 0;
+                            const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore != null).length : 0;
                             return `${answered}/${evaluation.questions.length}`;
                           })()}
                         </span>
                       </div>
+                    )}
                   </div>
 
                   {/* Right side - Actions */}
@@ -307,13 +309,15 @@ const Evaluations: React.FC = () => {
                       <Download className="w-5 h-5" />
                     </button>
 
-                    <button
-                      onClick={() => evaluation.id && handleDeleteEvaluation(evaluation.id, evaluation.appName)}
-                      className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Deletar"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                    {role === 'adm' && (
+                      <button
+                        onClick={() => evaluation.id && handleDeleteEvaluation(evaluation.id, evaluation.appName)}
+                        className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Deletar"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
 
                     <ChevronRight className="w-5 h-5 text-gray-400" />
                   </div>

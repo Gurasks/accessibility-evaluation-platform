@@ -144,6 +144,11 @@ export const EvaluationProvider: React.FC<EvaluationProviderProps> = ({ children
       throw new Error('Usuário não autenticado');
     }
 
+    // Prevent evaluators from deleting evaluations
+    if (role === 'evaluator') {
+      throw new Error('Permissão negada: avaliadores não podem deletar avaliações');
+    }
+
     setLoading(true);
     setError(null);
 
