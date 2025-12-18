@@ -39,7 +39,7 @@ const Results: React.FC = () => {
       if (scores.length > 0) {
         const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
         questionAverages.push({
-          text: question.text,
+          text: question.text.replace(/\[Peso:\s*\d+\]/, '').trim(),
           average: Math.round(average * 100) / 100,
           weight,
           count: scores.length,
