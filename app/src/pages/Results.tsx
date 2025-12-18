@@ -115,7 +115,7 @@ const Results: React.FC = () => {
     if (!evaluation) return;
 
     const dataStr = JSON.stringify(evaluation, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
     const exportFileDefaultName = `${evaluation.appName}-results.json`;
 
@@ -236,30 +236,30 @@ const Results: React.FC = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="text-sm font-medium text-gray-900 mb-2">
-                      {question.text}
+                      {question.text.replace(/\[Peso:\s*\d+\]/, '').trim()}
                     </h3>
                     {question.category && (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-2">
                         {question.category}
                       </span>
                     )}
-                            <div className="mt-2">
-                              {evaluation.responses && evaluation.responses.length > 0 ? (
-                                <div className="flex items-center flex-wrap gap-2">
-                                  <span className="text-sm text-gray-600 mr-2">Respostas:</span>
-                                  {evaluation.responses.map((r, ridx) => {
-                                    const score = r.questions && r.questions[index] ? r.questions[index].likertScore : null;
-                                    if (score === null || score === undefined) return null;
-                                    return (
-                                      <span key={ridx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        {score}/5
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-                              ) : (
-                                <span className="text-sm text-gray-500 italic">Nenhuma resposta</span>
-                              )}
+                    <div className="mt-2">
+                      {evaluation.responses && evaluation.responses.length > 0 ? (
+                        <div className="flex items-center flex-wrap gap-2">
+                          <span className="text-sm text-gray-600 mr-2">Respostas:</span>
+                          {evaluation.responses.map((r, ridx) => {
+                            const score = r.questions && r.questions[index] ? r.questions[index].likertScore : null;
+                            if (score === null || score === undefined) return null;
+                            return (
+                              <span key={ridx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {score}/5
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500 italic">Nenhuma resposta</span>
+                      )}
                     </div>
                     {question.comment && (
                       <div className="mt-2">

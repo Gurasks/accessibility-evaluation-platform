@@ -38,7 +38,7 @@ const PublicQuestions: React.FC<PublicQuestionsProps> = ({
                     {question.usedCount} usos
                   </span>
                 </div>
-                <p className="text-gray-800">{question.text}</p>
+                <p className="text-gray-800">{question.text.replace(/\[Peso:\s*\d+\]/, '').trim()}</p>
                 <p className="text-xs text-gray-500 mt-2">
                   Criada por outro usuário
                 </p>

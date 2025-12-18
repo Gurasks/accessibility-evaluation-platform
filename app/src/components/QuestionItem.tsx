@@ -56,7 +56,7 @@ const QuestionItem: React.FC<{
           </div>
 
           <div className="space-y-3">
-            {question.text}
+            {question.text.replace(/\[Peso:\s*\d+\]/, '').trim()}
 
             <div className="flex items-center space-x-3">
               {question.category}

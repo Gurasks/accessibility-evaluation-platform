@@ -33,7 +33,7 @@ const RespondEvaluation: React.FC = () => {
             // Try to find an existing response from the current user
             const userResponse = evalData.responses?.find(r => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email);
             const initialResponses: { [key: string]: { score: number | null; comment: string } } = {};
-            const baseQuestions = userResponse ? userResponse.questions : evalData.questions;
+            const baseQuestions = userResponse ? userResponse.questions : evalData.questions.map(q => ({ ...q, likertScore: null, comment: '' }));
             baseQuestions.forEach((q, index) => {
               initialResponses[index.toString()] = {
                 score: q.likertScore ?? null,
@@ -192,7 +192,7 @@ const RespondEvaluation: React.FC = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Pergunta {index + 1}
                 </h3>
-                <p className="text-gray-700">{question.text}</p>
+                <p className="text-gray-700">{question.text.replace(/\[Peso:\s*\d+\]/, '').trim()}</p>
                 {question.category && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-2">
                     {question.category}

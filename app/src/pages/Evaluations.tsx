@@ -15,18 +15,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { useEvaluation } from '../contexts/EvaluationContext';
 import { Evaluation } from '../types';
 
-  // Derive a display name from an email (prefer first name-like token)
-  const getNameFromEmail = (email?: string | null) => {
-    if (!email) return 'Usuário';
-    // If email contains a name-like format before @, try to extract first token
-    const local = email.split('@')[0];
-    // Replace common separators with space
-    const cleaned = local.replace(/[._-]+/g, ' ');
-    const firstToken = cleaned.split(' ')[0];
-    if (!firstToken) return local;
-    // Capitalize first letter
-    return firstToken.charAt(0).toUpperCase() + firstToken.slice(1);
-  };
+// Derive a display name from an email (prefer first name-like token)
+const getNameFromEmail = (email?: string | null) => {
+  if (!email) return 'Usuário';
+  // If email contains a name-like format before @, try to extract first token
+  const local = email.split('@')[0];
+  // Replace common separators with space
+  const cleaned = local.replace(/[._-]+/g, ' ');
+  const firstToken = cleaned.split(' ')[0];
+  if (!firstToken) return local;
+  // Capitalize first letter
+  return firstToken.charAt(0).toUpperCase() + firstToken.slice(1);
+};
 
 const Evaluations: React.FC = () => {
   const { evaluations, loading, error, getUserEvaluations, deleteEvaluation } = useEvaluation();
@@ -104,7 +104,7 @@ const Evaluations: React.FC = () => {
           {role === 'adm' ? 'Resultados das Avaliações' : 'Minhas Avaliações'}
         </h1>
         <p className="text-gray-600">
-          {role === 'adm' 
+          {role === 'adm'
             ? 'Visualize os resultados e médias das avaliações realizadas'
             : 'Avaliações disponíveis para responder e já respondidas'
           }
@@ -112,7 +112,7 @@ const Evaluations: React.FC = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className={`grid grid-cols-1 md:grid-cols-${role === 'evaluator' ? '4' : '3'} gap-6 mb-8`}>
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -153,17 +153,19 @@ const Evaluations: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Avaliador</p>
+        {role === 'evaluator' && (
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Avaliador</p>
                 <p className="text-lg font-bold text-gray-900 truncate">
-                {currentUser?.displayName ? currentUser.displayName.split(' ')[0] : getNameFromEmail(currentUser?.email)}
-              </p>
+                  {currentUser?.displayName ? currentUser.displayName.split(' ')[0] : getNameFromEmail(currentUser?.email)}
+                </p>
+              </div>
+              <User className="w-8 h-8 text-purple-500" />
             </div>
-            <User className="w-8 h-8 text-purple-500" />
           </div>
-        </div>
+        )}
       </div>
 
       {/* Search and Filter */}
@@ -252,31 +254,29 @@ const Evaluations: React.FC = () => {
                       </div>
                     </div>
 
-                    {role !== 'adm' && (
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-gray-700">Progresso:</span>
-                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          {(() => {
-                            const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
-                            const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore != null).length : 0;
-                            const percent = evaluation.questions.length > 0 ? (answered / evaluation.questions.length) * 100 : 0;
-                            return (
-                              <div
-                                className="h-full bg-green-500"
-                                style={{ width: `${percent}%` }}
-                              />
-                            );
-                          })()}
-                        </div>
-                        <span className="text-sm text-gray-600">
-                          {(() => {
-                            const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
-                            const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore != null).length : 0;
-                            return `${answered}/${evaluation.questions.length}`;
-                          })()}
-                        </span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-700">Progresso:</span>
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        {(() => {
+                          const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
+                          const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore !== null).length : 0;
+                          const percent = evaluation.questions.length > 0 ? (answered / evaluation.questions.length) * 100 : 0;
+                          return (
+                            <div
+                              className="h-full bg-green-500"
+                              style={{ width: `${percent}%` }}
+                            />
+                          );
+                        })()}
                       </div>
-                    )}
+                      <span className="text-sm text-gray-600">
+                        {(() => {
+                          const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
+                          const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore !== null).length : 0;
+                          return `${answered}/${evaluation.questions.length}`;
+                        })()}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Right side - Actions */}

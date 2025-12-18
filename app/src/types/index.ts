@@ -68,6 +68,7 @@ export interface UserQuestion {
   createdAt: Date;
   isPublic: boolean;
   usedCount: number;
+  weight: number;
 }
 
 export type QuestionFiltersTabs = "mine" | "public" | "templates";

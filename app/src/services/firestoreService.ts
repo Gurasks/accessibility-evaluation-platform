@@ -451,10 +451,10 @@ class FirestoreService {
       const querySnapshot = await getDocs(this.questionTemplatesCollection);
       return querySnapshot.docs.map(
         (doc) =>
-          ({
-            id: doc.id,
-            ...doc.data(),
-          } as any)
+        ({
+          id: doc.id,
+          ...doc.data(),
+        } as any)
       );
     } catch (error) {
       console.error("Erro ao buscar templates pré-definidos:", error);
@@ -465,30 +465,68 @@ class FirestoreService {
   // ========== MÉTODOS PRIVADOS ==========
 
   private mapFirestoreToEvaluation(id: string, data: DocumentData): Evaluation {
+    const responses = (data.responses || []).map((r: any) => ({
+      evaluatorId: r.evaluatorId,
+      evaluatorEmail: r.evaluatorEmail,
+      createdAt: r.createdAt?.toDate ? r.createdAt.toDate() : new Date(r.createdAt),
+      questions: (r.questions || []).map((q: any, index: number) => ({
+        ...q,
+        id: `r-${index}`,
+      })) as FirestoreQuestion[],
+    }));
+
+    const originalQuestions = (data.questions || []).map((q: any, index: number) => ({
+      ...q,
+      id: `q-${index}`, // Adiciona ID para as questões
+    })) as FirestoreQuestion[];
+
+    // Calculate average scores if there are responses
+    let calculatedQuestions = originalQuestions;
+    let totalScore = data.totalScore || 0;
+    let averageScore = data.averageScore || 0;
+
+    if (responses.length > 0) {
+      calculatedQuestions = originalQuestions.map((q, index) => {
+        const scores = responses
+          .map((r: any) => r.questions[index]?.likertScore)
+          .filter((score: any) => score !== null && score !== undefined);
+
+        const averageScoreForQuestion = scores.length > 0
+          ? parseFloat((scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length).toFixed(2))
+          : q.likertScore || 0;
+
+        return {
+          ...q,
+          likertScore: averageScoreForQuestion,
+        };
+      });
+
+      // Calculate weighted average score
+      let totalWeightedScore = 0;
+      let totalWeight = 0;
+      calculatedQuestions.forEach(q => {
+        const weight = q.weight || 1;
+        totalWeightedScore += (q.likertScore || 0) * weight;
+        totalWeight += weight;
+      });
+      averageScore = totalWeight > 0 ? parseFloat((totalWeightedScore / totalWeight).toFixed(2)) : 0;
+
+      totalScore = this.calculateTotalScore(calculatedQuestions);
+    }
+
     return {
       id,
       appName: data.appName,
       description: data.description,
-      questions: (data.questions || []).map((q: any, index: number) => ({
-        ...q,
-        id: `q-${index}`, // Adiciona ID para as questões
-      })) as FirestoreQuestion[],
+      questions: calculatedQuestions,
       evaluatorId: data.evaluatorId,
       evaluatorEmail: data.evaluatorEmail,
-      responses: (data.responses || []).map((r: any) => ({
-        evaluatorId: r.evaluatorId,
-        evaluatorEmail: r.evaluatorEmail,
-        createdAt: r.createdAt?.toDate ? r.createdAt.toDate() : new Date(r.createdAt),
-        questions: (r.questions || []).map((q: any, index: number) => ({
-          ...q,
-          id: `r-${index}`,
-        })) as FirestoreQuestion[],
-      })),
-      responsesCount: data.responsesCount || (Array.isArray(data.responses) ? data.responses.length : 0),
+      responses,
+      responsesCount: data.responsesCount || responses.length,
       createdAt: data.createdAt?.toDate() || new Date(),
       updatedAt: data.updatedAt?.toDate() || new Date(),
-      totalScore: data.totalScore,
-      averageScore: data.averageScore,
+      totalScore,
+      averageScore,
       isTemplate: data.isTemplate || false,
       templateName: data.templateName,
       sharedWith: data.sharedWith || [],
@@ -511,6 +549,7 @@ class FirestoreService {
       createdAt: data.createdAt?.toDate() || new Date(),
       isPublic: data.isPublic || false,
       usedCount: data.usedCount || 0,
+      weight: data.weight || 1,
     };
   }
 

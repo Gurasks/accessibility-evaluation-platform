@@ -47,7 +47,7 @@ const MyQuestions: React.FC<MyQuestionsProps> = (
                     Usada {question.usedCount} vezes
                   </span>
                 </div>
-                <p className="text-gray-800">{question.text}</p>
+                <p className="text-gray-800">{question.text.replace(/\[Peso:\s*\d+\]/, '').trim()}</p>
               </div>
               <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
