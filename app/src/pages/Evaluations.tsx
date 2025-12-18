@@ -267,20 +267,15 @@ const Evaluations: React.FC = () => {
                       </button>
                     )}
 
-                    <button
-                      onClick={() => evaluation.id && handleViewEvaluation(evaluation.id)}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                        role === 'evaluator' && evaluation.questions.filter(q => q.likertScore !== null).length === evaluation.questions.length
-                          ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                          : role === 'adm'
-                          ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                          : 'text-gray-400 bg-gray-50 cursor-not-allowed'
-                      }`}
-                      disabled={role === 'evaluator' && evaluation.questions.filter(q => q.likertScore !== null).length !== evaluation.questions.length}
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span>Ver Detalhes</span>
-                    </button>
+                    {role === 'adm' && (
+                      <button
+                        onClick={() => evaluation.id && handleViewEvaluation(evaluation.id)}
+                        className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors text-primary-600 bg-primary-50 hover:bg-primary-100"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>Ver Detalhes</span>
+                      </button>
+                    )}
 
                     <button
                       onClick={() => {/* Implement export */ }}

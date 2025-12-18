@@ -76,6 +76,20 @@ const Results: React.FC = () => {
     fetchEvaluation();
   }, [id, getEvaluationById]);
 
+  const formatDate = (date: Date | string) => {
+    try {
+      return new Date(date).toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (err) {
+      return '';
+    }
+  };
+
   const handleExport = () => {
     if (!evaluation) return;
 
@@ -147,6 +161,7 @@ const Results: React.FC = () => {
                 {evaluation.description && (
                   <p className="mt-1 text-sm text-gray-600">{evaluation.description}</p>
                 )}
+                <p className="mt-1 text-sm text-gray-500">Criado em: {formatDate(evaluation.createdAt)}</p>
               </div>
             </div>
             <button
