@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEvaluation } from '../contexts/EvaluationContext';
 import { Evaluation } from '../types';
 import { ArrowLeft, Download, FileText, BarChart3 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Results: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -124,6 +125,7 @@ const Results: React.FC = () => {
   const totalQuestions = evaluation.questions.length;
   const answeredQuestions = evaluation.questions.filter(q => q.likertScore !== null).length;
   const averageScore = evaluation.averageScore || 0;
+  const { role } = useAuth();
 
   const { questionAverages, overallAverage } = calculateAverages(evaluation.questions);
 
@@ -158,7 +160,7 @@ const Results: React.FC = () => {
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className={`grid grid-cols-1 ${role === 'adm' ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6 mb-6`}>
           <div className="bg-white shadow rounded-lg p-6">
             <div className="flex items-center">
               <BarChart3 className="h-8 w-8 text-blue-600" />
@@ -168,7 +170,8 @@ const Results: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white shadow rounded-lg p-6">
+          {role !== 'adm' && (
+            <div className="bg-white shadow rounded-lg p-6">
             <div className="flex items-center">
               <FileText className="h-8 w-8 text-green-600" />
               <div className="ml-4">
@@ -176,7 +179,8 @@ const Results: React.FC = () => {
                 <p className="text-2xl font-bold text-gray-900">{answeredQuestions}/{totalQuestions}</p>
               </div>
             </div>
-          </div>
+            </div>
+          )}
           <div className="bg-white shadow rounded-lg p-6">
             <div className="flex items-center">
               <BarChart3 className="h-8 w-8 text-purple-600" />
