@@ -27,6 +27,7 @@ const Home: React.FC = () => {
   const [description, setDescription] = useState('');
   const [objectives, setObjectives] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [questions, setQuestions] = useState<FormQuestion[]>([]);
   const [savingStatus, setSavingStatus] = useState<SavingStatus>('idle');
   const [saveMessage, setSaveMessage] = useState('');
@@ -128,6 +129,9 @@ const Home: React.FC = () => {
     if (targetAudience && targetAudience.trim()) {
       evaluationData.targetAudience = targetAudience.trim();
     }
+    if (dueDate && dueDate.trim()) {
+      evaluationData.dueDate = dueDate.trim();
+    }
 
     try {
       setSavingStatus('saving');
@@ -154,6 +158,7 @@ const Home: React.FC = () => {
         setAppUrl('');
         setObjectives('');
         setTargetAudience('');
+        setDueDate('');
         setIsCreatingTemplate(false);
         setTemplateName('');
         setSavingStatus('idle');
@@ -198,21 +203,11 @@ const Home: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/evaluations')}
-              className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
+              className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-primary-600 hover:bg-gray-50"
             >
               Ver minhas Avaliações
             </button>
-            <button
-              type="button"
-              onClick={() => setShowQuestionManager(!showQuestionManager)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${showQuestionManager
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              <Database className="w-4 h-4" />
-              <span>Banco de Perguntas</span>
-            </button>
+            {/* Banco de Perguntas moved to Questions section */}
 
             <button
               type="button"
@@ -229,16 +224,11 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Banco de Perguntas */}
-      {showQuestionManager && (
-        <div className="mb-8">
-          <QuestionManager selectedQuestions={questions.map(q => q.text.trim())} />
-        </div>
-      )}
+      {/* Banco de Perguntas (moved under Questions header) */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Formulário Principal */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           <form onSubmit={handleSubmit} className="space-y-10">
             {/* App Info */}
             <AppInfoForm
@@ -251,6 +241,8 @@ const Home: React.FC = () => {
               setObjectives={setObjectives}
               targetAudience={targetAudience}
               setTargetAudience={setTargetAudience}
+              dueDate={dueDate}
+              setDueDate={setDueDate}
               description={description}
               setDescription={setDescription}
               templateName={templateName}
@@ -263,6 +255,19 @@ const Home: React.FC = () => {
                 <h2 className="text-xl font-semibold text-gray-800">
                   Questões ({questions.length})
                 </h2>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowQuestionManager(!showQuestionManager)}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${showQuestionManager
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    }`}
+                  >
+                    <Database className="w-4 h-4" />
+                    <span>Banco de Perguntas</span>
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-6">
@@ -285,7 +290,34 @@ const Home: React.FC = () => {
                   />
                 ))}
               </div>
+
+              {showQuestionManager && (
+                <div className="mt-6">
+                  <QuestionManager selectedQuestions={questions.map(q => q.text.trim())} />
+                </div>
+              )}
             </div>
+
+            {/* Save status (moved from sidebar) */}
+            {savingStatus !== 'idle' && (
+              <div className={`mb-6 p-4 rounded-lg ${savingStatus === 'success'
+                ? 'bg-green-50 border border-green-200 text-green-800'
+                : savingStatus === 'error'
+                  ? 'bg-red-50 border border-red-200 text-red-800'
+                  : 'bg-blue-50 border border-blue-200 text-blue-800'
+                }`}>
+                <div className="flex items-center space-x-3">
+                  {savingStatus === 'success' ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : savingStatus === 'error' ? (
+                    <AlertCircle className="w-5 h-5" />
+                  ) : (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
+                  )}
+                  <span>{saveMessage}</span>
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="bg-white rounded-xl shadow-md p-8">
@@ -309,6 +341,7 @@ const Home: React.FC = () => {
                       setAppUrl('');
                       setObjectives('');
                       setTargetAudience('');
+                      setDueDate('');
                     }}
                     className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
@@ -318,7 +351,7 @@ const Home: React.FC = () => {
                   <button
                     type="submit"
                     disabled={saving || savingStatus === 'saving' || !currentUser || !appName.trim()}
-                    className="flex items-center space-x-2 px-6 py-3 text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center space-x-2 px-6 py-3 text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {saving || savingStatus === 'saving' ? (
                       <>
@@ -328,7 +361,7 @@ const Home: React.FC = () => {
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        <span>{isCreatingTemplate ? 'Salvar Template' : 'Salvar cenários de avaliação'}</span>
+                        <span>{isCreatingTemplate ? 'Salvar Template' : 'Criar Cenário de Avaliação'}</span>
                       </>
                     )}
                   </button>
@@ -338,31 +371,6 @@ const Home: React.FC = () => {
           </form>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Status */}
-          {savingStatus !== 'idle' && (
-            <div className={`p-4 rounded-lg ${savingStatus === 'success'
-              ? 'bg-green-50 border border-green-200 text-green-800'
-              : savingStatus === 'error'
-                ? 'bg-red-50 border border-red-200 text-red-800'
-                : 'bg-blue-50 border border-blue-200 text-blue-800'
-              }`}>
-              <div className="flex items-center space-x-3">
-                {savingStatus === 'success' ? (
-                  <CheckCircle className="w-5 h-5" />
-                ) : savingStatus === 'error' ? (
-                  <AlertCircle className="w-5 h-5" />
-                ) : (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
-                )}
-                <span>{saveMessage}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Quick Actions removed */}
-        </div>
       </div>
     </div>
   );

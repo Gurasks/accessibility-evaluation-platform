@@ -46,6 +46,8 @@ class FirestoreService {
         appUrl: data.appUrl || undefined,
         objectives: data.objectives || undefined,
         targetAudience: data.targetAudience || undefined,
+        // dueDate stored as Timestamp if provided
+        dueDate: data.dueDate ? Timestamp.fromDate(new Date(data.dueDate)) : undefined,
         description: data.description || "",
         questions: data.questions, // Já são StoredQuestion (sem IDs)
         evaluatorId: userId,
@@ -305,9 +307,26 @@ class FirestoreService {
       const docRef = doc(db, "evaluations", evaluationId);
       // If this update is a responder submitting answers, store them under `responses` instead of overwriting top-level questions
       if (responder && data.questions) {
-        // For evaluator responses, create/update a separate response document
-        // Search for an existing response doc for this evaluation by this responder
-        const snapshot = await getDocs(collection(db, "evaluations"));
+          // Check parent evaluation dueDate before accepting responses
+          try {
+            const parentSnap = await getDoc(docRef);
+            if (parentSnap.exists()) {
+              const parentData = parentSnap.data() as any;
+              if (parentData && parentData.dueDate) {
+                const due = parentData.dueDate?.toDate ? parentData.dueDate.toDate() : new Date(parentData.dueDate);
+                if (Timestamp.now().toDate() > due) {
+                  throw new Error('Prazo para respostas encerrado');
+                }
+              }
+            }
+          } catch (e) {
+            // if due date passed, propagate error
+            if (e instanceof Error) throw e;
+          }
+
+          // For evaluator responses, create/update a separate response document
+          // Search for an existing response doc for this evaluation by this responder
+          const snapshot = await getDocs(collection(db, "evaluations"));
         const allEvals = snapshot.docs.map((d) => ({ id: d.id, data: d.data() }));
 
         const existingResponse = allEvals.find((d: any) => {

@@ -289,29 +289,31 @@ const Evaluations: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-700">Progresso:</span>
-                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        {(() => {
-                          const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
-                          const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore !== null).length : 0;
-                          const percent = evaluation.questions.length > 0 ? (answered / evaluation.questions.length) * 100 : 0;
-                          return (
-                            <div
-                              className="h-full bg-green-500"
-                              style={{ width: `${percent}%` }}
-                            />
-                          );
-                        })()}
+                    {role === 'evaluator' && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-gray-700">Progresso:</span>
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          {(() => {
+                            const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
+                            const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore !== null).length : 0;
+                            const percent = evaluation.questions.length > 0 ? (answered / evaluation.questions.length) * 100 : 0;
+                            return (
+                              <div
+                                className="h-full bg-green-500"
+                                style={{ width: `${percent}%` }}
+                              />
+                            );
+                          })()}
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          {(() => {
+                            const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
+                            const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore !== null).length : 0;
+                            return `${answered}/${evaluation.questions.length}`;
+                          })()}
+                        </span>
                       </div>
-                      <span className="text-sm text-gray-600">
-                        {(() => {
-                          const userResp = (evaluation as any).responses ? (evaluation as any).responses.find((r: any) => r.evaluatorId === currentUser?.uid || r.evaluatorEmail === currentUser?.email) : null;
-                          const answered = userResp ? (userResp.questions || []).filter((q: any) => q.likertScore !== null).length : 0;
-                          return `${answered}/${evaluation.questions.length}`;
-                        })()}
-                      </span>
-                    </div>
+                    )}
                   </div>
 
                   {/* Right side - Actions */}

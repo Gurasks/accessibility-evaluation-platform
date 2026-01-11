@@ -4,6 +4,8 @@ type AppInfoFormProps = {
   setAppName: (name: string) => void;
   appUrl: string;
   setAppUrl: (url: string) => void;
+  dueDate: string;
+  setDueDate: (v: string) => void;
   description: string;
   setDescription: (desc: string) => void;
   objectives: string;
@@ -20,6 +22,8 @@ const AppInfoForm: React.FC<AppInfoFormProps> = (
     appName,
     appUrl,
     setAppUrl,
+    dueDate,
+    setDueDate,
     setAppName,
     description,
     setDescription,
@@ -72,6 +76,20 @@ const AppInfoForm: React.FC<AppInfoFormProps> = (
           placeholder="https://seudominio.com.br"
         />
         <p className="mt-1 text-sm text-gray-500">Insira a URL da aplicação avaliada (opcional)</p>
+      </div>
+
+      <div>
+        <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-2">
+          Data e horário limite para respostas (opcional)
+        </label>
+        <input
+          id="dueDate"
+          type="datetime-local"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        />
+        <p className="mt-1 text-sm text-gray-500">Após esta data e horário, o formulário não aceitará novas respostas.</p>
       </div>
 
       <div>

@@ -30,6 +30,7 @@ export interface Evaluation {
   description?: string;
   objectives?: string;
   targetAudience?: string;
+  dueDate?: Date;
   questions: FirestoreQuestion[];
   evaluatorId: string;
   evaluatorEmail: string;
@@ -60,6 +61,7 @@ export interface EvaluationFormData {
   description?: string;
   objectives?: string;
   targetAudience?: string;
+  dueDate?: string; // ISO or datetime-local string
   questions: StoredQuestion[]; // Sem IDs
   isTemplate?: boolean;
   templateName?: string;
