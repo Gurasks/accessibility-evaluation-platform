@@ -54,6 +54,9 @@ const Home: React.FC = () => {
   }, [location.search]);
 
   useEffect(() => {
+    // Use functional updates to avoid stale closures and avoid re-attaching
+    // listeners on every `questions` change.
+    console.log('[Home] mounting: attaching useQuestion/useTemplate listeners');
     const handleUseQuestion = (event: any) => {
       const question = event.detail;
       const newQuestion: FormQuestion = {
@@ -65,7 +68,10 @@ const Home: React.FC = () => {
         weight: question.weight,
         isCustom: false
       };
-      setQuestions([...questions, newQuestion]);
+      setQuestions(prev => {
+        console.log('[Home] useQuestion received:', question, 'prevCount=', prev.length);
+        return [...prev, newQuestion];
+      });
     };
 
     const handleUseTemplate = (event: any) => {
@@ -77,17 +83,25 @@ const Home: React.FC = () => {
         category: q.category || 'Geral',
         isCustom: false
       }));
-      setQuestions([...questions, ...templateQuestions]);
+      setQuestions(prev => {
+        console.log('[Home] useTemplate received:', templateQuestions.map((t: any) => t.text), 'prevCount=', prev.length);
+        return [...prev, ...templateQuestions];
+      });
     };
 
     window.addEventListener('useQuestion', handleUseQuestion);
     window.addEventListener('useTemplate', handleUseTemplate);
 
     return () => {
+      console.log('[Home] unmounting: removing listeners');
       window.removeEventListener('useQuestion', handleUseQuestion);
       window.removeEventListener('useTemplate', handleUseTemplate);
     };
-  }, [questions]);
+  }, []);
+
+  useEffect(() => {
+    console.log('[Home] showQuestionManager:', showQuestionManager);
+  }, [showQuestionManager]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +109,13 @@ const Home: React.FC = () => {
     if (!currentUser) {
       setSavingStatus('error');
       setSaveMessage('Você precisa estar logado para salvar um Cenário de Avaliação');
+      return;
+    }
+
+    // Prevent creating a non-template evaluation without any questions
+    if (!isCreatingTemplate && questions.length === 0) {
+      setSavingStatus('error');
+      setSaveMessage('Adicione pelo menos uma pergunta antes de salvar.');
       return;
     }
 
@@ -350,7 +371,7 @@ const Home: React.FC = () => {
 
                   <button
                     type="submit"
-                    disabled={saving || savingStatus === 'saving' || !currentUser || !appName.trim()}
+                    disabled={saving || savingStatus === 'saving' || !currentUser || !appName.trim() || (!isCreatingTemplate && questions.length === 0)}
                     className="flex items-center space-x-2 px-6 py-3 text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {saving || savingStatus === 'saving' ? (

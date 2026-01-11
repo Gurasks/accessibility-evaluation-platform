@@ -556,6 +556,7 @@ class FirestoreService {
       appUrl: data.appUrl || undefined,
       objectives: data.objectives || undefined,
       targetAudience: data.targetAudience || undefined,
+      dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : data.dueDate ? new Date(data.dueDate) : undefined,
       description: data.description,
       questions: calculatedQuestions,
       evaluatorId: data.evaluatorId,

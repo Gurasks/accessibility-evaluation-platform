@@ -42,6 +42,7 @@ const TemplateList: React.FC<TemplateListProps> = ({ predefinedTemplates }) => {
                 {template.questions.length} perguntas
               </div>
               <button
+                type="button"
                 onClick={() => {
                   // Implementar uso do template completo
                   const event = new CustomEvent('useTemplate', { detail: template.questions });

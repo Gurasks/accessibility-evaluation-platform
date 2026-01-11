@@ -51,6 +51,7 @@ const MyQuestions: React.FC<MyQuestionsProps> = (
               </div>
               <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
+                  type="button"
                   onClick={() => handleUseQuestion(question)}
                   className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                   title="Usar pergunta"
@@ -58,6 +59,7 @@ const MyQuestions: React.FC<MyQuestionsProps> = (
                   <Copy className="w-5 h-5" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => {/* Implementar toggle */ }}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   title={question.isPublic ? 'Tornar privada' : 'Tornar pública'}
@@ -69,6 +71,7 @@ const MyQuestions: React.FC<MyQuestionsProps> = (
                   )}
                 </button>
                 <button
+                  type="button"
                   onClick={() => {/* Implementar delete */ }}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Deletar"

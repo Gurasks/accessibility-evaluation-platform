@@ -158,6 +158,29 @@ const RespondEvaluation: React.FC = () => {
                 {evaluation.description && (
                   <p className="mt-1 text-sm text-gray-600">{evaluation.description}</p>
                 )}
+
+                {/* Show additional metadata to evaluators */}
+                {role === 'evaluator' && (
+                  <div className="mt-3 space-y-2 text-sm text-gray-700">
+                    {evaluation.objectives && (
+                      <p><strong>Objetivos:</strong> {evaluation.objectives}</p>
+                    )}
+                    {evaluation.targetAudience && (
+                      <p><strong>Público alvo:</strong> {evaluation.targetAudience}</p>
+                    )}
+                    {evaluation.appUrl && (
+                      <p>
+                        <strong>URL:</strong>{' '}
+                        <a href={evaluation.appUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                          {evaluation.appUrl}
+                        </a>
+                      </p>
+                    )}
+                    {evaluation.dueDate && (
+                      <p><strong>Prazo:</strong> {new Date(evaluation.dueDate).toLocaleString('pt-BR')}</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex items-center space-x-4">

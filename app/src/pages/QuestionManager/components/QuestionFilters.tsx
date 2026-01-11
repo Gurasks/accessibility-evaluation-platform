@@ -28,18 +28,21 @@ const QuestionFilters: React.FC<QuestionFiltersProps> = ({
         {/* Tabs */}
         <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-lg">
           <button
+            type="button"
             onClick={() => setActiveTab('mine')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'mine' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
           >
             Minhas Perguntas
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('public')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'public' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
           >
             Perguntas Públicas
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('templates')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'templates' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
           >

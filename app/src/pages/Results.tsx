@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEvaluation } from '../contexts/EvaluationContext';
 import { Evaluation } from '../types';
-import { ArrowLeft, Download, FileText, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Download, FileText, BarChart3, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Results: React.FC = () => {
@@ -12,6 +12,12 @@ const Results: React.FC = () => {
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { role } = useAuth();
+  const [openComments, setOpenComments] = useState<Record<number, boolean>>({});
+
+  const toggleComments = (index: number) => {
+    setOpenComments(prev => ({ ...prev, [index]: !prev[index] }));
+  };
 
   // Function to extract weight from question text
   const extractWeight = (question: Evaluation['questions'][0]): number => {
@@ -69,20 +75,29 @@ const Results: React.FC = () => {
 
   useEffect(() => {
     const fetchEvaluation = async () => {
-      if (!id) return;
+      console.log('[Results] fetchEvaluation start, id=', id);
+      if (!id) {
+        console.log('[Results] no id provided');
+        setLoading(false);
+        return;
+      }
 
       try {
         const evalData = await getEvaluationById(id);
+        console.log('[Results] getEvaluationById returned', evalData);
         if (evalData) {
           setEvaluation(evalData);
+          console.log('[Results] evaluation set');
         } else {
           setError('Cenário de avaliação não encontrado');
+          console.log('[Results] evaluation not found for id', id);
         }
       } catch (err) {
         setError('Erro ao carregar cenário de avaliação');
-        console.error(err);
+        console.error('[Results] fetch error', err);
       } finally {
         setLoading(false);
+        console.log('[Results] fetchEvaluation finished, loading=false');
       }
     };
 
@@ -159,7 +174,6 @@ const Results: React.FC = () => {
 
   const totalQuestions = evaluation.questions.length;
   const responsesCount = evaluation.responsesCount || (evaluation.responses ? evaluation.responses.length : 0);
-  const { role } = useAuth();
 
   const { questionAverages, overallSimple, overallWeighted } = calculateAverages(evaluation);
 
@@ -275,7 +289,51 @@ const Results: React.FC = () => {
                         </p>
                       </div>
                     )}
+                    {role === 'adm' && (
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleComments(index)}
+                          className="inline-flex items-center text-sm text-blue-600 hover:underline"
+                        >
+                          <span>{openComments[index] ? 'Ocultar comentários' : 'Ver comentários'}</span>
+                          <ChevronRight className={`ml-2 h-4 w-4 transform ${openComments[index] ? 'rotate-90' : ''}`} />
+                        </button>
+
+                        {openComments[index] && (
+                          <div className="mt-3 space-y-3">
+                            {evaluation.responses && evaluation.responses.length > 0 ? (
+                              evaluation.responses.map((r, ridx) => {
+                                const q = r.questions && r.questions[index];
+                                const comment = q && (q.comment || q.evaluatorComment || q.evaluatorNote);
+                                if (!comment) return null;
+                                const evaluator = r.evaluatorEmail || r.email || r.userEmail;
+                                const created = r.createdAt || r.submittedAt;
+                                return (
+                                  <div key={ridx} className="p-3 bg-gray-50 rounded-md">
+                                    <div className="flex items-center justify-between">
+                                      <div className="text-sm font-medium text-gray-900">{getNameFromEmail(evaluator)}</div>
+                                      <div className="text-xs text-gray-500">{formatDate(created)}</div>
+                                    </div>
+                                    <p className="mt-1 text-sm text-gray-700">{comment}</p>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <div className="text-sm text-gray-500 italic">Nenhum comentário de avaliador</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
+                  {role === 'adm' && (
+                    <div className="ml-4">
+                      <button type="button" onClick={() => toggleComments(index)} className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                        <ChevronRight className={`h-5 w-5 transform ${openComments[index] ? 'rotate-90' : ''}`} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

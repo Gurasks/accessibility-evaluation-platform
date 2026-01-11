@@ -28,9 +28,11 @@ const QuestionManager: React.FC<{ selectedQuestions: string[] }> = ({ selectedQu
 
   const handleUseQuestion = (question: UserQuestion) => {
     // Emitir evento para o formulário pai
+    console.log('[QuestionManager] dispatching useQuestion:', question.text);
     const event = new CustomEvent('useQuestion', { detail: question });
     window.dispatchEvent(event);
   };
+
 
   const filteredUserQuestions = userQuestions.filter(q => {
     const matchesSearch = q.text.toLowerCase().includes(searchTerm.toLowerCase());
@@ -45,6 +47,8 @@ const QuestionManager: React.FC<{ selectedQuestions: string[] }> = ({ selectedQu
     const notSelected = !selectedQuestions.includes(q.text.trim());
     return matchesSearch && matchesCategory && notSelected;
   });
+
+  console.log('[QuestionManager] render', { activeTab, filteredUserQuestions: filteredUserQuestions.length, filteredPublicQuestions: filteredPublicQuestions.length });
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200">
