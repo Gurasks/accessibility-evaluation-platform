@@ -347,7 +347,7 @@ const Signup: React.FC = () => {
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                 />
                 <label htmlFor="evaluator" className="ml-3 block text-sm font-medium text-gray-700">
-                  Avaliador - Responder avaliações de acessibilidade
+                  Avaliador - Responder cenários de avaliação de acessibilidade
                 </label>
               </div>
               <div className="flex items-center">
@@ -361,7 +361,7 @@ const Signup: React.FC = () => {
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                 />
                 <label htmlFor="adm" className="ml-3 block text-sm font-medium text-gray-700">
-                  ADM - Criar e gerenciar formulários de avaliação
+                  ADM - Criar e gerenciar formulários de cenários de avaliação
                 </label>
               </div>
             </div>

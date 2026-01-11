@@ -10,6 +10,7 @@ import {
   User
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import QuestionManager from './QuestionManager/QuestionManager';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useEvaluation } from '../contexts/EvaluationContext';
@@ -32,6 +33,8 @@ const Evaluations: React.FC = () => {
   const { evaluations, loading, error, getUserEvaluations, deleteEvaluation } = useEvaluation();
   const { currentUser, role } = useAuth();
   const navigate = useNavigate();
+
+  const [showQuestionManager, setShowQuestionManager] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredEvaluations, setFilteredEvaluations] = useState<Evaluation[]>([]);
@@ -59,11 +62,11 @@ const Evaluations: React.FC = () => {
   };
 
   const handleDeleteEvaluation = async (id: string, appName: string) => {
-    if (window.confirm(`Tem certeza que deseja deletar a avaliação "${appName}"?`)) {
+    if (window.confirm(`Tem certeza que deseja deletar o cenário de avaliação "${appName}"?`)) {
       try {
         await deleteEvaluation(id);
       } catch (error) {
-        console.error('Erro ao deletar avaliação:', error);
+        console.error('Erro ao deletar cenário de avaliação:', error);
       }
     }
   };
@@ -90,7 +93,7 @@ const Evaluations: React.FC = () => {
       <div className="max-w-6xl mx-auto py-12">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando suas avaliações...</p>
+          <p className="mt-4 text-gray-600">Carregando seus Cenários de Avaliação...</p>
         </div>
       </div>
     );
@@ -101,22 +104,54 @@ const Evaluations: React.FC = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {role === 'adm' ? 'Resultados das Avaliações' : 'Minhas Avaliações'}
+          {role === 'adm' ? 'Resultados dos Cenários de Avaliação' : 'Meus Cenários de Avaliação'}
         </h1>
         <p className="text-gray-600">
           {role === 'adm'
-            ? 'Visualize os resultados e médias das avaliações realizadas'
-            : 'Avaliações disponíveis para responder e já respondidas'
+            ? 'Visualize os resultados e médias dos cenários de avaliação realizados'
+            : 'Cenários de avaliação disponíveis para responder e já respondidos'
           }
         </p>
+        {role === 'adm' && (
+          <div className="mt-4 flex items-center space-x-3">
+            <button
+              type="button"
+              onClick={() => navigate('/admin')}
+              className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
+            >
+              Criar nova Avaliação
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowQuestionManager(!showQuestionManager)}
+              className={`px-4 py-2 rounded-lg ${showQuestionManager ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+              Banco de Perguntas
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/admin?template=true')}
+              className="px-4 py-2 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200"
+            >
+              Criar Template
+            </button>
+          </div>
+        )}
       </div>
+
+      {showQuestionManager && (
+        <div className="mb-8">
+          <QuestionManager selectedQuestions={[]} />
+        </div>
+      )}
 
       {/* Stats */}
       <div className={`grid grid-cols-1 md:grid-cols-${role === 'evaluator' ? '4' : '3'} gap-6 mb-8`}>
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Total de Avaliações</p>
+              <p className="text-sm text-gray-500">Total de Cenários de Avaliação</p>
               <p className="text-2xl font-bold text-gray-900">{evaluations.length}</p>
             </div>
             <FileText className="w-8 h-8 text-primary-500" />
@@ -141,7 +176,7 @@ const Evaluations: React.FC = () => {
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Última Avaliação</p>
+              <p className="text-sm text-gray-500">Último Cenário de Avaliação</p>
               <p className="text-lg font-bold text-gray-900">
                 {evaluations.length > 0
                   ? formatDate(evaluations[0]?.createdAt).split(',')[0]
@@ -184,7 +219,7 @@ const Evaluations: React.FC = () => {
 
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-600">
-              {filteredEvaluations.length} de {evaluations.length} avaliações
+              {filteredEvaluations.length} de {evaluations.length} cenários de avaliação
             </span>
           </div>
         </div>
@@ -202,20 +237,20 @@ const Evaluations: React.FC = () => {
         <div className="bg-white rounded-xl shadow-md p-12 text-center">
           <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            Nenhuma avaliação encontrada
+            Nenhum cenário de avaliação encontrado
           </h3>
           <p className="text-gray-500 mb-6">
             {searchTerm
               ? 'Tente buscar por outro termo'
-              : 'Crie sua primeira avaliação para começar'
+              : 'Crie seu primeiro cenário de avaliação para começar'
             }
           </p>
           {!searchTerm && (
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/admin')}
               className="px-6 py-3 text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
             >
-              Criar Primeira Avaliação
+              Criar Primeiro Cenário de Avaliação
             </button>
           )}
         </div>

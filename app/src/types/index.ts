@@ -26,7 +26,10 @@ export interface FirestoreQuestion extends BaseQuestion {
 export interface Evaluation {
   id?: string;
   appName: string;
+  appUrl?: string;
   description?: string;
+  objectives?: string;
+  targetAudience?: string;
   questions: FirestoreQuestion[];
   evaluatorId: string;
   evaluatorEmail: string;
@@ -53,7 +56,10 @@ export interface Evaluation {
 
 export interface EvaluationFormData {
   appName: string;
+  appUrl?: string;
   description?: string;
+  objectives?: string;
+  targetAudience?: string;
   questions: StoredQuestion[]; // Sem IDs
   isTemplate?: boolean;
   templateName?: string;

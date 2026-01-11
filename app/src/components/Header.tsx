@@ -4,7 +4,7 @@ import { LogOut, User, Home } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, role } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -20,7 +20,7 @@ const Header: React.FC = () => {
     <header className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2 text-primary-700">
+          <Link to={role === 'adm' ? '/evaluations' : '/'} className="flex items-center space-x-2 text-primary-700">
             <Home className="w-6 h-6" />
             <span className="text-xl font-bold">Avaliador de Acessibilidade</span>
           </Link>

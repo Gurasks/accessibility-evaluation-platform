@@ -7,23 +7,26 @@ import {
   Save
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEvaluation } from '../../contexts/EvaluationContext';
 import { useQuestion } from '../../contexts/QuestionContext';
 import { EvaluationFormData, FormQuestion, SavingStatus } from '../../types';
 import QuestionManager from '../QuestionManager/QuestionManager';
 import AppInfoForm from './components/AppInfoForm';
-import QuickActionsMenu from './components/QuickActionsMenu';
 
 const Home: React.FC = () => {
   const { currentUser, role } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { createEvaluation, loading: saving } = useEvaluation();
   const { loadQuestions } = useQuestion();
 
   const [appName, setAppName] = useState('');
+  const [appUrl, setAppUrl] = useState('');
   const [description, setDescription] = useState('');
+  const [objectives, setObjectives] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
   const [questions, setQuestions] = useState<FormQuestion[]>([]);
   const [savingStatus, setSavingStatus] = useState<SavingStatus>('idle');
   const [saveMessage, setSaveMessage] = useState('');
@@ -36,6 +39,18 @@ const Home: React.FC = () => {
       navigate('/evaluations');
     }
   }, [role, navigate]);
+
+  // If navigated with ?template=true, open the template creation mode
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      if (params.get('template') === 'true' || params.get('isTemplate') === 'true') {
+        setIsCreatingTemplate(true);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [location.search]);
 
   useEffect(() => {
     const handleUseQuestion = (event: any) => {
@@ -78,7 +93,7 @@ const Home: React.FC = () => {
 
     if (!currentUser) {
       setSavingStatus('error');
-      setSaveMessage('Você precisa estar logado para salvar avaliações');
+      setSaveMessage('Você precisa estar logado para salvar um Cenário de Avaliação');
       return;
     }
 
@@ -94,25 +109,37 @@ const Home: React.FC = () => {
       return filteredQuestion;
     });
 
-    const evaluationData: EvaluationFormData = {
+    const evaluationData: Partial<EvaluationFormData> = {
       appName: appName.trim(),
       description: description.trim(),
       questions: questionsWithoutIds,
       isTemplate: isCreatingTemplate,
-      templateName: isCreatingTemplate ? templateName : undefined
     };
+
+    if (isCreatingTemplate) {
+      evaluationData.templateName = templateName;
+    }
+    if (appUrl && appUrl.trim()) {
+      evaluationData.appUrl = appUrl.trim();
+    }
+    if (objectives && objectives.trim()) {
+      evaluationData.objectives = objectives.trim();
+    }
+    if (targetAudience && targetAudience.trim()) {
+      evaluationData.targetAudience = targetAudience.trim();
+    }
 
     try {
       setSavingStatus('saving');
-      setSaveMessage(isCreatingTemplate ? 'Salvando template...' : 'Salvando avaliação...');
+      setSaveMessage(isCreatingTemplate ? 'Salvando template...' : 'Salvando Cenário de Avaliação...');
 
-      await createEvaluation(evaluationData);
+      await createEvaluation(evaluationData as EvaluationFormData);
 
       setSavingStatus('success');
       setSaveMessage(
         isCreatingTemplate
           ? 'Template salvo com sucesso!'
-          : 'Avaliação salva com sucesso!'
+          : 'Cenário de Avaliação salvo com sucesso!'
       );
 
       // Limpar formulário após 2 segundos
@@ -120,8 +147,13 @@ const Home: React.FC = () => {
         if (!isCreatingTemplate) {
           setAppName('');
           setDescription('');
-          setQuestions(questions.map(q => ({ ...q, likertScore: null, comment: '' })));
+          // Clear questions after successful save
+          setQuestions([]);
         }
+        // clear newly added optional fields
+        setAppUrl('');
+        setObjectives('');
+        setTargetAudience('');
         setIsCreatingTemplate(false);
         setTemplateName('');
         setSavingStatus('idle');
@@ -129,7 +161,18 @@ const Home: React.FC = () => {
 
     } catch (error) {
       setSavingStatus('error');
-      setSaveMessage('Erro ao salvar. Tente novamente.');
+      // Mostrar mensagem curta e segura para o usuário
+      let userMessage = 'Erro ao salvar. Tente novamente.';
+      try {
+        if (error instanceof Error && error.message) {
+          const raw = error.message.trim();
+          // limitar comprimento para evitar exposição excessiva
+          userMessage = raw.length > 140 ? raw.slice(0, 140) + '...' : raw;
+        }
+      } catch (e) {
+        // fallback silencioso
+      }
+      setSaveMessage(userMessage);
       console.error('Erro ao salvar:', error);
     }
   };
@@ -137,11 +180,11 @@ const Home: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8 bg-white rounded-xl shadow-md p-6">
+      <div className="mb-8 bg-white rounded-xl shadow-md p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {isCreatingTemplate ? 'Criar Template de Avaliação' : 'Nova Avaliação'}
+              {isCreatingTemplate ? 'Criar Template de Cenário de Avaliação' : 'Novo Cenário de Avaliação'}
             </h1>
             <p className="text-gray-600">
               {isCreatingTemplate
@@ -152,6 +195,13 @@ const Home: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/evaluations')}
+              className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
+            >
+              Ver minhas Avaliações
+            </button>
             <button
               type="button"
               onClick={() => setShowQuestionManager(!showQuestionManager)}
@@ -173,7 +223,7 @@ const Home: React.FC = () => {
                 }`}
             >
               <Copy className="w-4 h-4" />
-              <span>{isCreatingTemplate ? 'Criar Avaliação' : 'Criar Template'}</span>
+              <span>{isCreatingTemplate ? 'Criar Cenário de Avaliação' : 'Criar Template'}</span>
             </button>
           </div>
         </div>
@@ -189,12 +239,18 @@ const Home: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Formulário Principal */}
         <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-10">
             {/* App Info */}
             <AppInfoForm
               isCreatingTemplate={isCreatingTemplate}
               appName={appName}
               setAppName={setAppName}
+              appUrl={appUrl}
+              setAppUrl={setAppUrl}
+              objectives={objectives}
+              setObjectives={setObjectives}
+              targetAudience={targetAudience}
+              setTargetAudience={setTargetAudience}
               description={description}
               setDescription={setDescription}
               templateName={templateName}
@@ -202,7 +258,7 @@ const Home: React.FC = () => {
             />
 
             {/* Questions */}
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-8">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">
                   Questões ({questions.length})
@@ -232,7 +288,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-8">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="text-sm text-gray-600">
                   {isCreatingTemplate ? (
@@ -248,8 +304,11 @@ const Home: React.FC = () => {
                     onClick={() => {
                       setAppName('');
                       setDescription('');
-                      setQuestions(questions.map(q => ({ ...q, likertScore: null, comment: '' })));
+                      setQuestions([]);
                       setTemplateName('');
+                      setAppUrl('');
+                      setObjectives('');
+                      setTargetAudience('');
                     }}
                     className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
@@ -269,7 +328,7 @@ const Home: React.FC = () => {
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        <span>{isCreatingTemplate ? 'Salvar Template' : 'Salvar Avaliação'}</span>
+                        <span>{isCreatingTemplate ? 'Salvar Template' : 'Salvar cenários de avaliação'}</span>
                       </>
                     )}
                   </button>
@@ -302,13 +361,7 @@ const Home: React.FC = () => {
             </div>
           )}
 
-          {/* Quick Actions */}
-          <QuickActionsMenu
-            navigate={navigate}
-            setShowQuestionManager={setShowQuestionManager}
-            isCreatingTemplate={isCreatingTemplate}
-            setIsCreatingTemplate={setIsCreatingTemplate}
-          />
+          {/* Quick Actions removed */}
         </div>
       </div>
     </div>

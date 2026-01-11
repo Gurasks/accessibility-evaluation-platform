@@ -44,10 +44,10 @@ const RespondEvaluation: React.FC = () => {
             setResponsesInitialized(true);
           }
         } else {
-          setError('Avaliação não encontrada');
+          setError('Cenário de avaliação não encontrado');
         }
       } catch (err) {
-        setError('Erro ao carregar avaliação');
+        setError('Erro ao carregar cenário de avaliação');
         console.error(err);
       } finally {
         setLoading(false);
@@ -113,7 +113,7 @@ const RespondEvaluation: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando avaliação...</p>
+          <p className="mt-4 text-gray-600">Carregando cenário de avaliação...</p>
         </div>
       </div>
     );
@@ -125,14 +125,14 @@ const RespondEvaluation: React.FC = () => {
         <div className="text-center">
           <CheckCircle className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">Erro</h3>
-          <p className="mt-1 text-sm text-gray-500">{error || 'Avaliação não encontrada'}</p>
+          <p className="mt-1 text-sm text-gray-500">{error || 'Cenário de avaliação não encontrado'}</p>
           <div className="mt-6">
             <button
               onClick={() => navigate('/evaluations')}
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar para Avaliações
+              Voltar para Cenários de avaliação
             </button>
           </div>
         </div>

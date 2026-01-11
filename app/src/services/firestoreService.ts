@@ -32,7 +32,7 @@ class FirestoreService {
     return collection(db, "questionTemplates");
   }
 
-  // ========== AVALIAÇÕES ==========
+  // ========== CENÁRIOS DE AVALIAÇÃO ==========
 
   async createEvaluation(
     data: EvaluationFormData,
@@ -41,8 +41,11 @@ class FirestoreService {
   ): Promise<string> {
     try {
       // Já recebemos questões sem IDs, não precisamos remover
-      const evaluationData = {
+      const evaluationData: any = {
         appName: data.appName,
+        appUrl: data.appUrl || undefined,
+        objectives: data.objectives || undefined,
+        targetAudience: data.targetAudience || undefined,
         description: data.description || "",
         questions: data.questions, // Já são StoredQuestion (sem IDs)
         evaluatorId: userId,
@@ -59,6 +62,13 @@ class FirestoreService {
         isPublic: false,
       };
 
+      // Remove any keys with `undefined` values to avoid Firestore rejecting the document
+      Object.keys(evaluationData).forEach((k) => {
+        if (evaluationData[k] === undefined) {
+          delete evaluationData[k];
+        }
+      });
+
       const docRef = await addDoc(this.evaluationsCollection, evaluationData);
 
       // Incrementa contador de uso das perguntas personalizadas
@@ -68,14 +78,14 @@ class FirestoreService {
 
       return docRef.id;
     } catch (error) {
-      console.error("Erro ao criar avaliação:", error);
-      throw new Error("Falha ao salvar avaliação no banco de dados");
+      console.error("Erro ao criar cenário de avaliação:", error);
+      throw new Error("Falha ao salvar cenário de avaliação no banco de dados");
     }
   }
 
   async getEvaluationById(evaluationId: string): Promise<Evaluation | null> {
     try {
-      console.log(`🔍 Buscando avaliação ${evaluationId}...`);
+      console.log(`🔍 Buscando cenário de avaliação ${evaluationId}...`);
 
       const docRef = doc(db, "evaluations", evaluationId);
       let docSnap = await getDoc(docRef);
@@ -118,23 +128,23 @@ class FirestoreService {
           console.error('Erro ao buscar documentos de resposta relacionados:', e);
         }
 
-        console.log(`✅ Avaliação ${evaluationId} encontrada:`, evaluation.appName);
+        console.log(`✅ Cenário de avaliação ${evaluationId} encontrado:`, evaluation.appName);
         return evaluation;
       }
 
-      console.log(`⚠️  Avaliação ${evaluationId} não encontrada`);
+      console.log(`⚠️  Cenário de avaliação ${evaluationId} não encontrado`);
       return null;
     } catch (error) {
-      console.error(`❌ Erro ao buscar avaliação ${evaluationId}:`, error);
+      console.error(`❌ Erro ao buscar cenário de avaliação ${evaluationId}:`, error);
       throw error;
     }
   }
 
-  // ========== BUSCAR AVALIAÇÕES DO USUÁRIO ==========
+  // ========== BUSCAR CENÁRIOS DE AVALIAÇÃO DO USUÁRIO ==========
 
   async getUserEvaluations(userId: string): Promise<Evaluation[]> {
     try {
-      console.log(`🔍 Buscando avaliações do usuário ${userId}...`);
+      console.log(`🔍 Buscando cenários de avaliação do usuário ${userId}...`);
 
       // Query simplificada: buscar todos os documentos e agregar respostas
       const snapshot = await getDocs(collection(db, "evaluations"));
@@ -175,26 +185,26 @@ class FirestoreService {
       // Ordena por data (mais recente primeiro)
       userEvaluations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-      console.log(`✅ ${userEvaluations.length} avaliações encontradas para o usuário`);
+      console.log(`✅ ${userEvaluations.length} cenários de avaliação encontrados para o usuário`);
       return userEvaluations;
     } catch (error) {
-      console.error("❌ Erro ao buscar avaliações do usuário:", error);
+      console.error("❌ Erro ao buscar cenários de avaliação do usuário:", error);
       throw error;
     }
   }
 
-  // ========== BUSCAR TODAS AS AVALIAÇÕES ==========
+  // ========== BUSCAR TODOS OS CENÁRIOS DE AVALIAÇÃO ==========
 
   async getAllEvaluations(): Promise<Evaluation[]> {
     try {
-      console.log(`🔍 Buscando todas as avaliações...`);
+      console.log(`🔍 Buscando todos os cenários de avaliação...`);
 
       const snapshot = await getDocs(collection(db, "evaluations"));
       const docs = snapshot.docs.map(d => ({ id: d.id, data: d.data() })) as { id: string; data: any }[];
 
       const allEvaluations = docs.map(d => this.mapFirestoreToEvaluation(d.id, d.data));
 
-      // Filtra apenas avaliações (não respostas)
+      // Filtra apenas cenários de avaliação (não respostas)
       const evaluations = allEvaluations.filter(evalItem => !evalItem.isResponse);
 
       // Build map of response docs by originalEvaluationId
@@ -223,10 +233,10 @@ class FirestoreService {
       // Ordena por data (mais recente primeiro)
       evaluations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-      console.log(`✅ ${evaluations.length} avaliações encontradas`);
+      console.log(`✅ ${evaluations.length} cenários de avaliação encontrados`);
       return evaluations;
     } catch (error) {
-      console.error("❌ Erro ao buscar todas as avaliações:", error);
+      console.error("❌ Erro ao buscar todos os cenários de avaliação:", error);
       throw error;
     }
   }
@@ -290,7 +300,7 @@ class FirestoreService {
     responder?: { id: string; email: string }
   ): Promise<void> {
     try {
-      console.log(`🔄 Atualizando avaliação ${evaluationId}...`);
+      console.log(`🔄 Atualizando cenário de avaliação ${evaluationId}...`);
 
       const docRef = doc(db, "evaluations", evaluationId);
       // If this update is a responder submitting answers, store them under `responses` instead of overwriting top-level questions
@@ -354,6 +364,13 @@ class FirestoreService {
           ...data,
         };
 
+        // Remove undefined fields before calling updateDoc to avoid Firestore errors
+        Object.keys(updateData).forEach((k) => {
+          if (updateData[k] === undefined) {
+            delete updateData[k];
+          }
+        });
+
         // If there are top-level questions being updated by author/admin, recalc scores as before
         if (data.questions) {
           updateData.totalScore = this.calculateTotalScore(data.questions);
@@ -362,26 +379,26 @@ class FirestoreService {
 
         await updateDoc(docRef, updateData);
       }
-      console.log(`✅ Avaliação ${evaluationId} atualizada com sucesso!`);
+      console.log(`✅ Cenário de avaliação ${evaluationId} atualizado com sucesso!`);
     } catch (error) {
-      console.error(`❌ Erro ao atualizar avaliação ${evaluationId}:`, error);
-      throw new Error(`Falha ao atualizar avaliação: ${error}`);
+      console.error(`❌ Erro ao atualizar cenário de avaliação ${evaluationId}:`, error);
+      throw new Error(`Falha ao atualizar cenário de avaliação: ${error}`);
     }
   }
 
-  // ========== DELETAR AVALIAÇÃO ==========
+  // ========== DELETAR CENÁRIO DE AVALIAÇÃO ==========
 
   async deleteEvaluation(evaluationId: string): Promise<void> {
     try {
-      console.log(`🗑️  Deletando avaliação ${evaluationId}...`);
+      console.log(`🗑️  Deletando cenário de avaliação ${evaluationId}...`);
 
       const docRef = doc(db, "evaluations", evaluationId);
       await deleteDoc(docRef);
 
-      console.log(`✅ Avaliação ${evaluationId} deletada com sucesso!`);
+      console.log(`✅ Cenário de avaliação ${evaluationId} deletado com sucesso!`);
     } catch (error) {
-      console.error(`❌ Erro ao deletar avaliação ${evaluationId}:`, error);
-      throw new Error(`Falha ao deletar avaliação: ${error}`);
+      console.error(`❌ Erro ao deletar cenário de avaliação ${evaluationId}:`, error);
+      throw new Error(`Falha ao deletar cenário de avaliação: ${error}`);
     }
   }
 
@@ -517,6 +534,9 @@ class FirestoreService {
     return {
       id,
       appName: data.appName,
+      appUrl: data.appUrl || undefined,
+      objectives: data.objectives || undefined,
+      targetAudience: data.targetAudience || undefined,
       description: data.description,
       questions: calculatedQuestions,
       evaluatorId: data.evaluatorId,

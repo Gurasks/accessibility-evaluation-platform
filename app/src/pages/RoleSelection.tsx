@@ -36,8 +36,8 @@ const RoleSelection: React.FC = () => {
         </div>
 
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>ADM: Cria e gerencia formulários de avaliação</p>
-          <p>Avaliador: Responde avaliações de acessibilidade</p>
+          <p>ADM: Cria e gerencia formulários de cenários de avaliação</p>
+          <p>Avaliador: Responde cenários de avaliação de acessibilidade</p>
         </div>
       </div>
     </div>

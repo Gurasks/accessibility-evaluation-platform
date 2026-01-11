@@ -26,7 +26,7 @@ const PublicQuestions: React.FC<PublicQuestionsProps> = ({
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-2">
-                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full max-w-xs truncate block">
                     {question.category}
                   </span>
                   <span className="flex items-center space-x-1 text-sm text-green-600">
