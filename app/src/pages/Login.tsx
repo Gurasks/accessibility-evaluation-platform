@@ -13,8 +13,12 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     if (currentUser && role) {
-      // Redirect to home page, which will redirect based on role
-      navigate('/');
+      // Redirect after login: admins go to evaluations, others to home
+      if (role === 'adm') {
+        navigate('/evaluations');
+      } else {
+        navigate('/');
+      }
     }
   }, [currentUser, role, navigate]);
 
