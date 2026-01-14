@@ -17,6 +17,7 @@ import {
   StoredQuestion,
   UserQuestion,
 } from "../types";
+import { aiValidationService } from "./aiValidationService";
 // Olhar com mais calma
 class FirestoreService {
   // Coleções
@@ -40,6 +41,17 @@ class FirestoreService {
     userEmail: string
   ): Promise<string> {
     try {
+      // Validação por IA simulada
+      const aiValidation = aiValidationService.validateQuestions(
+        data.questions,
+        {
+          appName: data.appName,
+          description: data.description,
+          objectives: data.objectives,
+          targetAudience: data.targetAudience
+        }
+      );
+
       // Já recebemos questões sem IDs, não precisamos remover
       const evaluationData: any = {
         appName: data.appName,
@@ -62,6 +74,14 @@ class FirestoreService {
         templateName: data.templateName || "",
         sharedWith: [],
         isPublic: false,
+        // AI Validation
+        aiValidation: {
+          score: aiValidation.score,
+          feedback: aiValidation.feedback,
+          validatedAt: Timestamp.fromDate(aiValidation.validatedAt),
+          strengths: aiValidation.strengths,
+          improvements: aiValidation.improvements
+        }
       };
 
       // Remove any keys with `undefined` values to avoid Firestore rejecting the document
@@ -574,6 +594,13 @@ class FirestoreService {
       isResponse: data.isResponse || false,
       respondedTo: data.respondedTo,
       originalEvaluationId: data.originalEvaluationId,
+      aiValidation: data.aiValidation ? {
+        score: data.aiValidation.score,
+        feedback: data.aiValidation.feedback,
+        validatedAt: data.aiValidation.validatedAt?.toDate ? data.aiValidation.validatedAt.toDate() : new Date(data.aiValidation.validatedAt),
+        strengths: data.aiValidation.strengths || [],
+        improvements: data.aiValidation.improvements || []
+      } : undefined
     };
   }
 

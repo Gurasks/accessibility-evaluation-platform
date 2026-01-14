@@ -4,6 +4,7 @@ import { useEvaluation } from '../contexts/EvaluationContext';
 import { Evaluation } from '../types';
 import { ArrowLeft, Download, FileText, BarChart3, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import AIValidationBadge from '../components/AIValidationBadge';
 
 const Results: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -213,6 +214,19 @@ const Results: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* AI Validation Section */}
+        {evaluation.aiValidation && (
+          <div className="mb-6">
+            <AIValidationBadge
+              score={evaluation.aiValidation.score}
+              feedback={evaluation.aiValidation.feedback}
+              strengths={evaluation.aiValidation.strengths}
+              improvements={evaluation.aiValidation.improvements}
+              validatedAt={evaluation.aiValidation.validatedAt}
+            />
+          </div>
+        )}
 
         {/* Summary Stats */}
         <div className={`grid grid-cols-1 ${role === 'adm' ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6 mb-6`}>

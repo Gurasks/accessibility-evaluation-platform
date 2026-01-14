@@ -53,6 +53,14 @@ export interface Evaluation {
     questions: FirestoreQuestion[];
   }[];
   responsesCount?: number;
+  // AI Validation
+  aiValidation?: {
+    score: 1 | 2 | 3 | 4 | 5;
+    feedback: string;
+    validatedAt: Date;
+    strengths: string[];
+    improvements: string[];
+  };
 }
 
 export interface EvaluationFormData {

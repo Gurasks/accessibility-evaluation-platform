@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useEvaluation } from '../contexts/EvaluationContext';
 import { Evaluation } from '../types';
+import AIValidationBadge from '../components/AIValidationBadge';
 
 // Derive a display name from an email (prefer first name-like token)
 const getNameFromEmail = (email?: string | null) => {
@@ -288,6 +289,20 @@ const Evaluations: React.FC = () => {
                         <span>{evaluation.questions.length} questões</span>
                       </div>
                     </div>
+
+                    {/* AI Validation Badge - Compact */}
+                    {evaluation.aiValidation && (
+                      <div className="mb-4">
+                        <AIValidationBadge
+                          score={evaluation.aiValidation.score}
+                          feedback={evaluation.aiValidation.feedback}
+                          strengths={evaluation.aiValidation.strengths}
+                          improvements={evaluation.aiValidation.improvements}
+                          validatedAt={evaluation.aiValidation.validatedAt}
+                          compact={true}
+                        />
+                      </div>
+                    )}
 
                     {role === 'evaluator' && (
                       <div className="flex items-center space-x-2">

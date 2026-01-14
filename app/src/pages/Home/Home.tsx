@@ -1,10 +1,12 @@
 import QuestionItem from '@/components/QuestionItem';
+import AIValidationBadge from '@/components/AIValidationBadge';
 import {
   AlertCircle,
   CheckCircle,
   Copy,
   Database,
-  Save
+  Save,
+  Sparkles
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -12,7 +14,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useEvaluation } from '../../contexts/EvaluationContext';
 import { useQuestion } from '../../contexts/QuestionContext';
 import { EvaluationFormData, FormQuestion, SavingStatus } from '../../types';
-import QuestionManager from '../QuestionManager/QuestionManager';
+import { aiValidationService } from '../../services/aiValidationService';
+import QuestionActionMenu from './components/QuestionActionMenu';
+import QuickCreateQuestion from './components/QuickCreateQuestion';
+import QuestionBankViewer from './components/QuestionBankViewer';
 import AppInfoForm from './components/AppInfoForm';
 
 const Home: React.FC = () => {
@@ -32,8 +37,18 @@ const Home: React.FC = () => {
   const [savingStatus, setSavingStatus] = useState<SavingStatus>('idle');
   const [saveMessage, setSaveMessage] = useState('');
   const [showQuestionManager, setShowQuestionManager] = useState(false);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const [questionMode, setQuestionMode] = useState<'none' | 'create' | 'bank'>('none');
   const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
   const [templateName, setTemplateName] = useState('');
+  const [showAIValidation, setShowAIValidation] = useState(false);
+  const [aiValidationResult, setAiValidationResult] = useState<{
+    score: 1 | 2 | 3 | 4 | 5;
+    feedback: string;
+    strengths: string[];
+    improvements: string[];
+    validatedAt: Date;
+  } | null>(null);
 
   useEffect(() => {
     if (role && role !== 'adm') {
@@ -103,6 +118,13 @@ const Home: React.FC = () => {
     console.log('[Home] showQuestionManager:', showQuestionManager);
   }, [showQuestionManager]);
 
+  // Recarregar questões apenas quando abrir o banco pela primeira vez
+  useEffect(() => {
+    if (questionMode === 'bank') {
+      loadQuestions();
+    }
+  }, [questionMode]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -156,7 +178,23 @@ const Home: React.FC = () => {
 
     try {
       setSavingStatus('saving');
-      setSaveMessage(isCreatingTemplate ? 'Salvando template...' : 'Salvando Cenário de Avaliação...');
+      setSaveMessage(isCreatingTemplate ? 'Salvando template...' : 'Validando com IA e salvando Cenário de Avaliação...');
+
+      // Simular validação por IA (com um pequeno delay para realismo)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const validation = aiValidationService.validateQuestions(
+        questionsWithoutIds,
+        {
+          appName: appName.trim(),
+          description: description.trim(),
+          objectives: objectives.trim(),
+          targetAudience: targetAudience.trim()
+        }
+      );
+      
+      setAiValidationResult(validation);
+      setShowAIValidation(true);
 
       await createEvaluation(evaluationData as EvaluationFormData);
 
@@ -164,7 +202,7 @@ const Home: React.FC = () => {
       setSaveMessage(
         isCreatingTemplate
           ? 'Template salvo com sucesso!'
-          : 'Cenário de Avaliação salvo com sucesso!'
+          : 'Cenário de Avaliação validado e salvo com sucesso!'
       );
 
       // Limpar formulário após 2 segundos
@@ -279,14 +317,14 @@ const Home: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <button
                     type="button"
-                    onClick={() => setShowQuestionManager(!showQuestionManager)}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${showQuestionManager
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                    }`}
+                    onClick={() => {
+                      setShowActionMenu(true);
+                      setQuestionMode('none');
+                    }}
+                    className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors bg-blue-100 text-blue-700 hover:bg-blue-200"
                   >
                     <Database className="w-4 h-4" />
-                    <span>Banco de Perguntas</span>
+                    <span>Adicionar questão</span>
                   </button>
                 </div>
               </div>
@@ -312,12 +350,37 @@ const Home: React.FC = () => {
                 ))}
               </div>
 
-              {showQuestionManager && (
+              {/* Question Mode: Create or Bank */}
+              {questionMode === 'create' && (
                 <div className="mt-6">
-                  <QuestionManager selectedQuestions={questions.map(q => q.text.trim())} />
+                  <QuickCreateQuestion 
+                    onSuccess={() => {
+                      // Opcional: fechar após adicionar
+                      // setQuestionMode('none');
+                    }}
+                    onClose={() => setQuestionMode('none')}
+                  />
+                </div>
+              )}
+
+              {questionMode === 'bank' && (
+                <div className="mt-6">
+                  <QuestionBankViewer 
+                    selectedQuestions={questions.map(q => q.text.trim())} 
+                    onClose={() => setQuestionMode('none')}
+                  />
                 </div>
               )}
             </div>
+
+            {/* Action Menu Modal */}
+            {showActionMenu && (
+              <QuestionActionMenu
+                onCreateNew={() => setQuestionMode('create')}
+                onUseBank={() => setQuestionMode('bank')}
+                onClose={() => setShowActionMenu(false)}
+              />
+            )}
 
             {/* Save status (moved from sidebar) */}
             {savingStatus !== 'idle' && (
@@ -337,6 +400,25 @@ const Home: React.FC = () => {
                   )}
                   <span>{saveMessage}</span>
                 </div>
+              </div>
+            )}
+
+            {/* AI Validation Result */}
+            {showAIValidation && aiValidationResult && (
+              <div className="mb-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Sparkles className="w-5 h-5 text-purple-600" />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Resultado da Validação por IA
+                  </h3>
+                </div>
+                <AIValidationBadge
+                  score={aiValidationResult.score}
+                  feedback={aiValidationResult.feedback}
+                  strengths={aiValidationResult.strengths}
+                  improvements={aiValidationResult.improvements}
+                  validatedAt={aiValidationResult.validatedAt}
+                />
               </div>
             )}
 
