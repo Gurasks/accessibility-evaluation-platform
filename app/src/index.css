@@ -1,6 +1,7 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import url('https://fonts.googleapis.com/css2?family=OpenDyslexic:wght@400;700&display=swap');
 
 @layer base {
   body {
@@ -24,6 +25,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -32,4 +34,526 @@
 
 .fade-in {
   animation: fadeIn 0.3s ease-out;
+}
+
+/* Accessibility Settings */
+
+/* Font Sizes */
+[data-font-size="small"] {
+  font-size: 14px;
+}
+
+[data-font-size="medium"] {
+  font-size: 16px;
+}
+
+[data-font-size="large"] {
+  font-size: 18px;
+}
+
+[data-font-size="extra-large"] {
+  font-size: 20px;
+}
+
+/* Scale all text proportionally */
+[data-font-size="small"] * {
+  font-size: 0.875rem !important;
+}
+
+[data-font-size="medium"] * {
+  font-size: 1rem !important;
+}
+
+[data-font-size="large"] * {
+  font-size: 1.125rem !important;
+}
+
+[data-font-size="extra-large"] * {
+  font-size: 1.25rem !important;
+}
+
+/* Font Families */
+[data-font-family="default"] {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+[data-font-family="sans-serif"] {
+  font-family: 'Arial', 'Helvetica', sans-serif;
+}
+
+[data-font-family="serif"] {
+  font-family: 'Times New Roman', 'Georgia', serif;
+}
+
+[data-font-family="monospace"] {
+  font-family: 'Courier New', 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+[data-font-family="dyslexic"] {
+  font-family: 'OpenDyslexic', 'Arial', sans-serif;
+}
+
+/* Themes */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-modal: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --bg-button-primary: #3b82f6;
+  --bg-button-secondary: #f3f4f6;
+  --bg-button-hover: #2563eb;
+  --bg-button-secondary-hover: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --text-button: #ffffff;
+  --text-button-secondary: #374151;
+  --border-color: #d1d5db;
+  --border-focus: #3b82f6;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-hover: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-modal: #1e293b;
+  --bg-card: #334155;
+  --bg-input: #334155;
+  --bg-button-primary: #3b82f6;
+  --bg-button-secondary: #475569;
+  --bg-button-hover: #2563eb;
+  --bg-button-secondary-hover: #64748b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-button: #ffffff;
+  --text-button-secondary: #f1f5f9;
+  --border-color: #475569;
+  --border-focus: #60a5fa;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-hover: rgba(0, 0, 0, 0.4);
+}
+
+/* Apply theme colors globally */
+[data-theme="dark"] body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Background colors */
+[data-theme="dark"] .bg-white {
+  background-color: var(--bg-card);
+}
+
+[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--bg-secondary);
+}
+
+[data-theme="dark"] .bg-gray-100 {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .bg-primary-600 {
+  background-color: var(--bg-button-primary);
+}
+
+[data-theme="dark"] .bg-primary-700 {
+  background-color: var(--bg-button-hover);
+}
+
+[data-theme="dark"] .bg-primary-300 {
+  background-color: var(--text-button);
+}
+
+/* Text colors */
+[data-theme="dark"] .text-gray-900 {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .text-gray-700 {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .text-gray-600 {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .text-gray-500 {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .text-gray-400 {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .text-gray-300 {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .text-gray-800 {
+  color: var(--text-primary);
+}
+
+/* Additional text color overrides */
+[data-theme="dark"] .text-slate-700 {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .text-slate-600 {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .text-slate-500 {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .text-primary-600 {
+  color: var(--bg-button-primary);
+}
+
+[data-theme="dark"] .text-primary-500 {
+  color: var(--bg-button-primary);
+}
+
+/* Border colors */
+[data-theme="dark"] .border-gray-300 {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .border-gray-200 {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .border-primary-500 {
+  border-color: var(--border-focus);
+}
+
+[data-theme="dark"] .border-primary-600 {
+  border-color: var(--bg-button-primary);
+}
+
+/* Focus states */
+[data-theme="dark"] .focus\:ring-primary-500:focus {
+  --tw-ring-color: var(--border-focus);
+}
+
+[data-theme="dark"] .focus\:ring-primary-500 {
+  --tw-ring-color: var(--border-focus);
+}
+
+/* Hover states */
+[data-theme="dark"] .hover\:bg-gray-50:hover {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .hover\:bg-primary-700:hover {
+  background-color: var(--bg-button-hover);
+}
+
+[data-theme="dark"] .hover\:text-gray-600:hover {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .hover\:text-primary-500:hover {
+  color: var(--bg-button-primary);
+}
+
+/* Input styles */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 1px var(--border-focus);
+}
+
+/* Button styles */
+[data-theme="dark"] button {
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .bg-primary-600 {
+  background-color: var(--bg-button-primary);
+  color: var(--text-button);
+}
+
+[data-theme="dark"] .bg-primary-600:hover {
+  background-color: var(--bg-button-hover);
+}
+
+/* Modal and overlay styles */
+[data-theme="dark"] .fixed.inset-0.bg-black.bg-opacity-50 {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Card styles */
+[data-theme="dark"] .shadow-lg {
+  box-shadow: 0 10px 15px -3px var(--shadow), 0 4px 6px -2px var(--shadow);
+}
+
+/* Specific component overrides */
+[data-theme="dark"] .bg-red-50 {
+  background-color: #451a03;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .bg-green-50 {
+  background-color: #14532d;
+  color: #86efac;
+}
+
+[data-theme="dark"] .text-red-700 {
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .text-green-700 {
+  color: #86efac;
+}
+
+[data-theme="dark"] .border-red-200 {
+  border-color: #7f1d1d;
+}
+
+[data-theme="dark"] .border-green-200 {
+  border-color: #14532d;
+}
+
+/* Additional component styles for dark theme */
+[data-theme="dark"] .bg-blue-600 {
+  background-color: var(--bg-button-primary);
+}
+
+[data-theme="dark"] .bg-blue-700 {
+  background-color: var(--bg-button-hover);
+}
+
+[data-theme="dark"] .text-blue-600 {
+  color: var(--bg-button-primary);
+}
+
+[data-theme="dark"] .text-blue-500 {
+  color: var(--border-focus);
+}
+
+[data-theme="dark"] .hover\:bg-blue-700:hover {
+  background-color: var(--bg-button-hover);
+}
+
+[data-theme="dark"] .focus\:ring-blue-500:focus {
+  --tw-ring-color: var(--border-focus);
+}
+
+/* Form elements */
+[data-theme="dark"] .placeholder-gray-500::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .placeholder-gray-400::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Links */
+[data-theme="dark"] a {
+  color: var(--bg-button-primary);
+}
+
+[data-theme="dark"] a:hover {
+  color: var(--border-focus);
+}
+
+/* Tables */
+[data-theme="dark"] table {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] th {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] td {
+  border-color: var(--border-color);
+}
+
+/* Lists */
+[data-theme="dark"] li {
+  color: var(--text-primary);
+}
+
+/* Code blocks */
+[data-theme="dark"] code {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] pre {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Scrollbars */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* High Contrast Mode */
+[data-high-contrast] {
+  --hc-bg-primary: #000000;
+  --hc-bg-secondary: #000000;
+  --hc-bg-tertiary: #000000;
+  --hc-bg-modal: #000000;
+  --hc-bg-card: #000000;
+  --hc-bg-input: #000000;
+  --hc-bg-button-primary: #ffff00;
+  --hc-bg-button-secondary: #ffffff;
+  --hc-bg-button-hover: #ffff00;
+  --hc-bg-button-secondary-hover: #ffffff;
+  --hc-text-primary: #ffff00;
+  --hc-text-secondary: #ffffff;
+  --hc-text-muted: #ffffff;
+  --hc-text-button: #000000;
+  --hc-text-button-secondary: #000000;
+  --hc-border-color: #ffffff;
+  --hc-border-focus: #ffff00;
+  --hc-shadow: rgba(255, 255, 0, 0.3);
+  --hc-shadow-hover: rgba(255, 255, 0, 0.5);
+}
+
+/* High contrast overrides all theme colors */
+[data-high-contrast] body {
+  background-color: var(--hc-bg-primary) !important;
+  color: var(--hc-text-primary) !important;
+}
+
+[data-high-contrast] * {
+  border-color: var(--hc-border-color) !important;
+}
+
+[data-high-contrast] .bg-white,
+[data-high-contrast] .bg-gray-50,
+[data-high-contrast] .bg-gray-100,
+[data-high-contrast] .bg-gray-200 {
+  background-color: var(--hc-bg-primary) !important;
+}
+
+[data-high-contrast] .text-gray-900,
+[data-high-contrast] .text-gray-700,
+[data-high-contrast] .text-gray-600,
+[data-high-contrast] .text-gray-500 {
+  color: var(--hc-text-primary) !important;
+}
+
+[data-high-contrast] .text-gray-400,
+[data-high-contrast] .text-gray-300 {
+  color: var(--hc-text-secondary) !important;
+}
+
+[data-high-contrast] .border-gray-300,
+[data-high-contrast] .border-gray-200,
+[data-high-contrast] .border-gray-100 {
+  border-color: var(--hc-border-color) !important;
+}
+
+[data-high-contrast] .bg-primary-600,
+[data-high-contrast] .bg-blue-600 {
+  background-color: var(--hc-bg-button-primary) !important;
+  color: var(--hc-text-button) !important;
+}
+
+[data-high-contrast] .bg-primary-700,
+[data-high-contrast] .bg-blue-700,
+[data-high-contrast] .hover\:bg-primary-700:hover,
+[data-high-contrast] .hover\:bg-blue-700:hover {
+  background-color: var(--hc-bg-button-hover) !important;
+}
+
+[data-high-contrast] .text-primary-600,
+[data-high-contrast] .text-primary-500,
+[data-high-contrast] .text-blue-600,
+[data-high-contrast] .text-blue-500 {
+  color: var(--hc-text-primary) !important;
+}
+
+[data-high-contrast] input,
+[data-high-contrast] textarea,
+[data-high-contrast] select {
+  background-color: var(--hc-bg-input) !important;
+  color: var(--hc-text-primary) !important;
+  border-color: var(--hc-border-color) !important;
+}
+
+[data-high-contrast] input:focus,
+[data-high-contrast] textarea:focus,
+[data-high-contrast] select:focus {
+  border-color: var(--hc-border-focus) !important;
+  box-shadow: 0 0 0 2px var(--hc-border-focus) !important;
+}
+
+[data-high-contrast] button {
+  border-color: var(--hc-border-color) !important;
+}
+
+[data-high-contrast] .bg-red-50 {
+  background-color: var(--hc-bg-primary) !important;
+  color: #ff0000 !important;
+  border: 2px solid #ff0000 !important;
+}
+
+[data-high-contrast] .bg-green-50 {
+  background-color: var(--hc-bg-primary) !important;
+  color: #00ff00 !important;
+  border: 2px solid #00ff00 !important;
+}
+
+[data-high-contrast] .text-red-700 {
+  color: #ff0000 !important;
+}
+
+[data-high-contrast] .text-green-700 {
+  color: #00ff00 !important;
+}
+
+/* High contrast links */
+[data-high-contrast] a {
+  color: var(--hc-text-primary) !important;
+  text-decoration: underline !important;
+}
+
+[data-high-contrast] a:hover {
+  color: var(--hc-bg-button-primary) !important;
+}
+
+/* High contrast focus indicators */
+[data-high-contrast] *:focus {
+  outline: 2px solid var(--hc-border-focus) !important;
+  outline-offset: 2px !important;
+}
+
+/* High contrast modal */
+[data-high-contrast] .fixed.inset-0.bg-black.bg-opacity-50 {
+  background-color: rgba(0, 0, 0, 0.9) !important;
 }
