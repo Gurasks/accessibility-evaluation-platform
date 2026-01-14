@@ -305,10 +305,10 @@ const Results: React.FC = () => {
                             {evaluation.responses && evaluation.responses.length > 0 ? (
                               evaluation.responses.map((r, ridx) => {
                                 const q = r.questions && r.questions[index];
-                                const comment = q && (q.comment || q.evaluatorComment || q.evaluatorNote);
+                                const comment = q && q.comment;
                                 if (!comment) return null;
-                                const evaluator = r.evaluatorEmail || r.email || r.userEmail;
-                                const created = r.createdAt || r.submittedAt;
+                                const evaluator = r.evaluatorEmail;
+                                const created = r.createdAt;
                                 return (
                                   <div key={ridx} className="p-3 bg-gray-50 rounded-md">
                                     <div className="flex items-center justify-between">

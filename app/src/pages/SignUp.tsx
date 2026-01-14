@@ -77,13 +77,9 @@ const Signup: React.FC = () => {
 
       setSuccess('Conta criada com sucesso! Redirecionando...');
 
-      // Redireciona baseado no role
+      // Redireciona para a página inicial, que irá redirecionar baseado no papel
       setTimeout(() => {
-        if (formData.role === 'evaluator') {
-          navigate('/evaluations');
-        } else {
-          navigate('/');
-        }
+        navigate('/');
       }, 2000);
 
     } catch (err: any) {
