@@ -12,6 +12,7 @@ import Evaluations from './pages/Evaluations';
 import Signup from './pages/SignUp';
 import Results from './pages/Results';
 import RespondEvaluation from './pages/RespondEvaluation';
+import CreateEvaluation from './pages/CreateEvaluation/CreateEvaluation';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
                 }>
                   <Route index element={<Home />} />
                   <Route path="admin" element={<Home />} />
+                  <Route path="evaluations/new" element={<CreateEvaluation />} />
                   <Route path="evaluations" element={<Evaluations />} />
                   <Route path="evaluation/:id" element={<Results />} />
                   <Route path="respond/:id" element={<RespondEvaluation />} />

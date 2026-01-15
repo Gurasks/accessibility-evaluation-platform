@@ -45,7 +45,6 @@ export interface Evaluation {
   originalEvaluationId?: string;
   isResponse?: boolean;
   respondedTo?: string;
-  // New: multiple responses from different evaluators
   responses?: {
     evaluatorId: string;
     evaluatorEmail: string;
@@ -96,6 +95,6 @@ export type Template = {
   questions: UserQuestion[];
 };
 
-export type UserRole = 'adm' | 'evaluator';
+export type UserRole = "adm" | "evaluator";
 
 export type SavingStatus = "idle" | "saving" | "saved" | "error" | "success";

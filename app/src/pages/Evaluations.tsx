@@ -16,6 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useEvaluation } from '../contexts/EvaluationContext';
 import { Evaluation } from '../types';
 import AIValidationBadge from '../components/AIValidationBadge';
+import QuickActions from '../components/QuickActions';
 
 // Derive a display name from an email (prefer first name-like token)
 const getNameFromEmail = (email?: string | null) => {
@@ -107,38 +108,13 @@ const Evaluations: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           {role === 'adm' ? 'Resultados dos Cenários de Avaliação' : 'Meus Cenários de Avaliação'}
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mb-4">
           {role === 'adm'
             ? 'Visualize os resultados e médias dos cenários de avaliação realizados'
             : 'Cenários de avaliação disponíveis para responder e já respondidos'
           }
         </p>
-        {role === 'adm' && (
-          <div className="mt-4 flex items-center space-x-3">
-            <button
-              type="button"
-              onClick={() => navigate('/admin')}
-              className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-            >
-              Criar nova Avaliação
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowQuestionManager(!showQuestionManager)}
-              className={`px-4 py-2 rounded-lg ${showQuestionManager ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-              Banco de Perguntas
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/admin?template=true')}
-              className="px-4 py-2 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200"
-            >
-              Criar Template
-            </button>
-          </div>
-        )}
+        {role === 'adm' && <QuickActions questionManager={() => setShowQuestionManager(!showQuestionManager)} />}
       </div>
 
       {showQuestionManager && (
