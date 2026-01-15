@@ -316,27 +316,6 @@ const CreateEvaluation: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-6">
-                {questions.map((question, index) => (
-                  <QuestionItem
-                    key={question.id}
-                    question={question}
-                    index={index}
-                    onUpdate={(updated) => {
-                      const newQuestions = [...questions];
-                      newQuestions[index] = updated;
-                      setQuestions(newQuestions);
-                    }}
-                    onRemove={() => {
-                      if (questions.length > 1) {
-                        setQuestions(questions.filter((_, i) => i !== index));
-                      }
-                    }}
-                    showResponseControls={role === 'evaluator'}
-                  />
-                ))}
-              </div>
-
               {/* Question Mode: Create or Bank */}
               {questionMode === 'create' && (
                 <div className="mt-6">
@@ -358,6 +337,27 @@ const CreateEvaluation: React.FC = () => {
                   />
                 </div>
               )}
+
+              <div className="space-y-6">
+                {questions.map((question, index) => (
+                  <QuestionItem
+                    key={question.id}
+                    question={question}
+                    index={index}
+                    onUpdate={(updated) => {
+                      const newQuestions = [...questions];
+                      newQuestions[index] = updated;
+                      setQuestions(newQuestions);
+                    }}
+                    onRemove={() => {
+                      if (questions.length > 1) {
+                        setQuestions(questions.filter((_, i) => i !== index));
+                      }
+                    }}
+                    showResponseControls={role === 'evaluator'}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Action Menu Modal */}

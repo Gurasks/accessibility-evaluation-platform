@@ -31,13 +31,6 @@ const QuestionBankViewer: React.FC<QuestionBankViewerProps> = ({ selectedQuestio
     console.log('[QuestionBankViewer] dispatching useQuestion:', question.text);
     const event = new CustomEvent('useQuestion', { detail: question });
     window.dispatchEvent(event);
-    
-    // Fechar o banco após adicionar uma questão
-    if (onClose) {
-      setTimeout(() => {
-        onClose();
-      }, 300);
-    }
   };
 
   const filteredUserQuestions = userQuestions.filter(q => {
@@ -110,7 +103,7 @@ const QuestionBankViewer: React.FC<QuestionBankViewerProps> = ({ selectedQuestio
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory} 
+        setSelectedCategory={setSelectedCategory}
       />
 
       {/* Lista de Perguntas */}
