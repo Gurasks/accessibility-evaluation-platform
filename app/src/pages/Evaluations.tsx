@@ -1,7 +1,8 @@
 import {
   BarChart3,
   Calendar,
-  ChevronRight,
+  Check,
+  Copy,
   Download,
   Eye,
   FileText,
@@ -16,6 +17,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useEvaluation } from '../contexts/EvaluationContext';
 import { Evaluation } from '../types';
 import AIValidationBadge from '../components/AIValidationBadge';
+import QuickActions from '../components/QuickActions';
 
 // Derive a display name from an email (prefer first name-like token)
 const getNameFromEmail = (email?: string | null) => {
@@ -36,6 +38,7 @@ const Evaluations: React.FC = () => {
   const navigate = useNavigate();
 
   const [showQuestionManager, setShowQuestionManager] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredEvaluations, setFilteredEvaluations] = useState<Evaluation[]>([]);
@@ -69,6 +72,19 @@ const Evaluations: React.FC = () => {
       } catch (error) {
         console.error('Erro ao deletar cenário de avaliação:', error);
       }
+    }
+  };
+
+  const handleCopyEvaluationLink = async (id: string) => {
+    const link = `${window.location.origin}/respond/${id}`;
+
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedId(id);
+
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Erro ao copiar link:', err);
     }
   };
 
@@ -107,38 +123,13 @@ const Evaluations: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           {role === 'adm' ? 'Resultados dos Cenários de Avaliação' : 'Meus Cenários de Avaliação'}
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mb-4">
           {role === 'adm'
             ? 'Visualize os resultados e médias dos cenários de avaliação realizados'
             : 'Cenários de avaliação disponíveis para responder e já respondidos'
           }
         </p>
-        {role === 'adm' && (
-          <div className="mt-4 flex items-center space-x-3">
-            <button
-              type="button"
-              onClick={() => navigate('/admin')}
-              className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
-            >
-              Criar nova Avaliação
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowQuestionManager(!showQuestionManager)}
-              className={`px-4 py-2 rounded-lg ${showQuestionManager ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-              Banco de Perguntas
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/admin?template=true')}
-              className="px-4 py-2 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200"
-            >
-              Criar Template
-            </button>
-          </div>
-        )}
+        {role === 'adm' && <QuickActions questionManager={() => setShowQuestionManager(!showQuestionManager)} />}
       </div>
 
       {showQuestionManager && (
@@ -371,7 +362,17 @@ const Evaluations: React.FC = () => {
                       </button>
                     )}
 
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                    <button
+                      onClick={() => evaluation.id && handleCopyEvaluationLink(evaluation.id)}
+                      className="p-2 rounded-lg transition-colors text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                      title="Copiar link da avaliação"
+                    >
+                      {copiedId === evaluation.id ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
