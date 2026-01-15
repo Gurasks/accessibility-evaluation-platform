@@ -1,7 +1,8 @@
 import {
   BarChart3,
   Calendar,
-  ChevronRight,
+  Check,
+  Copy,
   Download,
   Eye,
   FileText,
@@ -37,6 +38,7 @@ const Evaluations: React.FC = () => {
   const navigate = useNavigate();
 
   const [showQuestionManager, setShowQuestionManager] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredEvaluations, setFilteredEvaluations] = useState<Evaluation[]>([]);
@@ -70,6 +72,19 @@ const Evaluations: React.FC = () => {
       } catch (error) {
         console.error('Erro ao deletar cenário de avaliação:', error);
       }
+    }
+  };
+
+  const handleCopyEvaluationLink = async (id: string) => {
+    const link = `${window.location.origin}/respond/${id}`;
+
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedId(id);
+
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Erro ao copiar link:', err);
     }
   };
 
@@ -347,7 +362,17 @@ const Evaluations: React.FC = () => {
                       </button>
                     )}
 
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                    <button
+                      onClick={() => evaluation.id && handleCopyEvaluationLink(evaluation.id)}
+                      className="p-2 rounded-lg transition-colors text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                      title="Copiar link da avaliação"
+                    >
+                      {copiedId === evaluation.id ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Copy className="w-5 h-5" />
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
